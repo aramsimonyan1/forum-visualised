@@ -1,10 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Forum</title>
 </head>
-
 <body>
     <h1>Welcome to the Forum</h1>
+
+    {{if .IsLoggedIn}}
+        <div class="logout">
+            <form action="/logout" method="post">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+
+        <!-- Post creation form for users who are logged in-->
+        <h2>Create a Post</h2>
+        <form action="/create-post" method="post">
+            <label for="title"></label>
+            <input type="text" id="title" name="title" placeholder="post title" required>
+
+            <div id="avalable-categories">
+                <label for="category">Category:</label>
+                <select id="categories" name="categories[]" multiple required>
+                    <option value="food">Food</option>
+                    <option value="politics">Politics</option>
+                    <option value="sport">Sport</option>
+                    <option value="tech">Tech</option>
+                </select>
+            </div>
+
+            <label for="content"></label>
+            <textarea id="content" name="content" rows="6" placeholder="post content" required></textarea>
+
+            <div class="create-post">
+                <button type="submit"><span class="fixed-content">Create Post</span></button>
+            </div>
+        </form>
+
+        <br><br> 
+        <!-- filtering options for logged in users -->
+        <form method="GET" action="/">
+            <label for="category"><button type="submit">Filter by category: </button></label>
+            <select name="category" id="category">
+                <option value="" {{if eq .SelectedCategory ""}}selected{{end}}>All categories</option>
+                <option value="food" {{if eq .SelectedCategory "food"}}selected{{end}}>Food</option>
+                <option value="politics" {{if eq .SelectedCategory "politics"}}selected{{end}}>Politics</option>
+                <option value="sport" {{if eq .SelectedCategory "sport"}}selected{{end}}>Sport</option>
+                <option value="tech" {{if eq .SelectedCategory "tech"}}selected{{end}}>Tech</option>
+            </select>
+        </form>
+        <br><br>
+
+        <!-- Add two buttons for user's posts, and liked posts -->
+        <form method="get" action="/">
+            <button type="submit" name="filter" value="user">My Posts</button>
+            <button type="submit" name="filter" value="liked">Liked Posts</button>
+        </form>
+
+        <!-- Display posts for users who are logged in -->
+        {{range .Posts}}
+            <div class="posts-container">
+                <div class="post" id="post-{{.ID}}">
+                    <p><span class="fixed-content">Title: </span><a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p> 
+                    <p><span class="fixed-content">Category:</span>
+                        {{range $index, $category := .Categories}}
+                            {{if $index}}, {{end}}
+                            {{$category}}
+                        {{end}}
+                    </p>
+                    <p><span class="fixed-content">Content: </span>{{.Content}}</p>
+                    <p><span class="fixed-content">Created at: </span>{{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                    
+                        <!-- Like and Dislike buttons for posts -->
+                        <div id="post-interactions-area">
+                            <div class="interaction-button">
+                                <form action="/like/{{.ID}}" method="post">
+                                    <button class="interaction-button" type="submit"><span class="fixed-content">Like</span></button>
+                                </form>
+                            </div>
+                            <div class="interaction-count">
+                                Likes: {{.LikesCount}}
+                            </div>
+                            <div class="interaction-button"> 
+                                <form action="/dislike/{{.ID}}" method="post">
+                                    <button class="interaction-button" type="submit"><span class="fixed-content">Dislike</span></button>
+                                </form>
+                            </div>    
+                            <div class="interaction-count">
+                                Dislikes: {{.DislikesCount}}
+                            </div>
+                        </div>
+                    {{range .Comments}}
+                        <div id="commentDetails"> 
+                                <p>Comment: {{.Content}}</p>
+                                <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                                <!-- Like and Dislike buttons for comments -->
+                            <div class="comm-interactions-area" id="comment-{{.ID}}">
+                                <div class="interaction-button">
+                                    <form action="/like-comment/{{.ID}}" method="post">
+                                        <button class="comm-interaction-button" type="submit">Like</button>
+                                    </form>
+                                </div>
+                                <div class="interaction-count">
+                                    Likes: {{.LikesCount}}
+                                </div>
+                                <div class="interaction-button"> 
+                                    <form action="/dislike-comment/{{.ID}}" method="post">
+                                        <button class="comm-interaction-button" type="submit">Dislike</button>
+                                    </form>
+                                </div>
+                                <div class="interaction-count"> 
+                                    Dislikes: {{.DislikesCount}}
+                                </div>
+                            </div>
+                        </div>
+                    {{end}}
+            
+                    <!-- Comment creation form -->
+                    <form action="/add-comment/{{.ID}}" method="post">
+                        <label for="commentContent"></label>
+                        <textarea id="commentContent" name="commentContent" rows="3" placeholder="type your comment" required></textarea>
+                        <div class="create-post">
+                            <button class="add-comment" type="submit">Add Comment</button>
+                        </div>
+                    </form>
+                </div>     
+            </div>
+        {{end}}   
+
+    {{else}}
+        <div class="please-log-in"><p>You are not logged in. Please log in or register.</p></div>
+        <div class="auth-forms">
+            <div class="login-form">
+                <div class="Login-Register"><h2>Log in</h2></div>
+                <form action="/login" method="post">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+            
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+            
+                    <button type="submit">Login</button>
+                </form>
+            </div>    
+            <div class="register-form">
+                <div class="Login-Register"><h2>Register</h2></div>
+                <form action="/register" method="post">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+            
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+            
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+            
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <br><br>
+
+        <!-- Display posts for users who are not logged in -->
+        <div class="posts-container">
+            {{range .Posts}}
+                <div class="post">
+                    <p>Title: <a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p>
+                    <p>Category: {{range .Categories}}{{.}}, {{end}}</p>
+                    <p>Content: {{.Content}}</p>
+                    <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                    <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
+                    {{range .Comments}}
+                        <div>
+                            <p>Comment: {{.Content}}</p>
+                            <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                            <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
+                        </div>
+                    {{end}}
+                </div>          
+            {{end}}
+    {{end}}
 </body>
 </html>
