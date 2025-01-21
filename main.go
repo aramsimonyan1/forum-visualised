@@ -169,7 +169,8 @@ func main() {
 	http.HandleFunc("/like-comment/{postID}", likeCommentHandler)
 	http.HandleFunc("/dislike-comment/{postID}", dislikeCommentHandler)
 	http.HandleFunc("/filter", categoryFilterHandler)
-	http.HandleFunc("/user-activity", userActivityChartHandler)
+	http.HandleFunc("/post-chart", userPostChartHandler)
+	http.HandleFunc("/comment-chart", userCommentChartHandler)
 
 	// Start the server
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -1074,6 +1075,7 @@ func getPostByID(postID string) (*Post, error) {
 	return &post, nil
 }
 
+// Retrieve the number of posts a user has made on each date.
 func getUserPostData(userID string) (map[string]int, error) {
 	rows, err := db.Query("SELECT DATE(created_at) FROM posts WHERE user_id = ?", userID)
 	if err != nil {
@@ -1092,7 +1094,8 @@ func getUserPostData(userID string) (map[string]int, error) {
 	return postCount, nil
 }
 
-func userActivityChartHandler(w http.ResponseWriter, r *http.Request) {
+// Create chart for posts
+func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r) // Get user ID from session or request
 
 	// Fetch post data
@@ -1125,6 +1128,72 @@ func userActivityChartHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	line.SetXAxis(dates).AddSeries("Posts", counts)
 
+	page := components.NewPage()
+	page.AddCharts(line)
+	page.Render(w)
+}
+
+// Retrieve the number of comments a user has made on each date.
+func getUserCommentData(userID string) ([]string, []int) {
+	rows, err := db.Query(`
+        SELECT DATE(created_at) as date, COUNT(*) 
+        FROM comments 
+        WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?) 
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)`, userID)
+	if err != nil {
+		log.Println("Error fetching user comment data:", err)
+		return nil, nil
+	}
+	defer rows.Close()
+
+	var dates []string
+	var counts []int
+
+	for rows.Next() {
+		var date string
+		var count int
+		if err := rows.Scan(&date, &count); err != nil {
+			log.Println("Error scanning user comment data:", err)
+			continue
+		}
+		dates = append(dates, date)
+		counts = append(counts, count)
+	}
+
+	return dates, counts
+}
+
+func userCommentChartHandler(w http.ResponseWriter, r *http.Request) {
+	userID := getUserID(r) // Get user ID from session or request
+
+	// Fetch data
+	dates, counts := getUserCommentData(userID)
+
+	// Create chart
+	line := charts.NewLine()
+	line.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "User Comment Activity"}),
+		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name:        "Comments",
+			Min:         0,
+			MinInterval: 1,
+			Type:        "value",
+			AxisLabel:   &opts.AxisLabel{Formatter: "{value}"},
+		}),
+	)
+
+	// Convert counts []int to []opts.LineData
+	data := make([]opts.LineData, len(counts)) // initialises the slice with the right size
+	for i, v := range counts {                 // The loop fills the new slice with properly formatted data.
+		data[i] = opts.LineData{Value: v}
+	}
+
+	line.SetXAxis(dates).AddSeries("Comments", data)
+
+	// Render the chart
+	w.Header().Set("Content-Type", "text/html")
 	page := components.NewPage()
 	page.AddCharts(line)
 	page.Render(w)
