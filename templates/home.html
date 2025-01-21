@@ -67,6 +67,7 @@
         {{range .Posts}}
             <div class="posts-container">
                 <div class="post" id="post-{{.ID}}">
+                    <p><span class="fixed-content">Posted by: </span><strong>{{.Username}}</strong></p>
                     <p><span class="fixed-content">Title: </span><a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p> 
                     <p><span class="fixed-content">Category:</span>
                         {{range $index, $category := .Categories}}

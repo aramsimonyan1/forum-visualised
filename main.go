@@ -27,6 +27,7 @@ type User struct {
 
 type Post struct {
 	ID            string
+	Username      string
 	Title         string
 	Content       string
 	Categories    []string
@@ -428,7 +429,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
 	var posts []Post
-
 	var query string
 	var args []interface{}
 
@@ -438,24 +438,28 @@ func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
 
 		// Build the query dynamically based on the number of categories
 		query = `
-            SELECT id, title, content, categories, created_at, likes_count, dislikes_count
+            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
+                   posts.likes_count, posts.dislikes_count, users.username
             FROM posts
+            JOIN users ON posts.user_id = users.id
             WHERE `
 		for i, category := range categories {
 			if i > 0 {
 				query += " OR "
 			}
-			query += "INSTR(categories, ?) > 0"
+			query += "INSTR(posts.categories, ?) > 0"
 			args = append(args, category)
 		}
 		query += `
-            ORDER BY created_at DESC
+            ORDER BY posts.created_at DESC
         `
 	} else {
 		query = `
-            SELECT id, title, content, categories, created_at, likes_count, dislikes_count
+            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
+                   posts.likes_count, posts.dislikes_count, users.username
             FROM posts
-            ORDER BY created_at DESC
+            JOIN users ON posts.user_id = users.id
+            ORDER BY posts.created_at DESC
         `
 	}
 
@@ -468,7 +472,7 @@ func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
 	for rows.Next() {
 		var post Post
 		var categoriesString string
-		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount)
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount, &post.Username)
 		if err != nil {
 			return nil, err
 		}
