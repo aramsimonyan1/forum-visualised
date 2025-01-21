@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/components"
+	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/bcrypt"
@@ -144,6 +147,32 @@ func initDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func main() {
+	// Initialize the database
+	initDB()
+
+	// Serve static files
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	// Public Routes
+	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/logout", logoutHandler)
+	http.HandleFunc("/create-post", createPostHandler)
+	http.HandleFunc("/add-comment/{postID}", addCommentHandler)
+	http.HandleFunc("/post/", viewPostHandler)
+	http.HandleFunc("/like/{postID}", likePostHandler)
+	http.HandleFunc("/dislike/{postID}", dislikePostHandler)
+	http.HandleFunc("/like-comment/{postID}", likeCommentHandler)
+	http.HandleFunc("/dislike-comment/{postID}", dislikeCommentHandler)
+	http.HandleFunc("/filter", categoryFilterHandler)
+	http.HandleFunc("/user-activity", userActivityChartHandler)
+
+	// Start the server
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // Function retrieves the user ID from the given HTTP request
@@ -1045,27 +1074,58 @@ func getPostByID(postID string) (*Post, error) {
 	return &post, nil
 }
 
-func main() {
-	// Initialize the database
-	initDB()
+func getUserPostData(userID string) (map[string]int, error) {
+	rows, err := db.Query("SELECT DATE(created_at) FROM posts WHERE user_id = ?", userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 
-	// Serve static files
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	postCount := make(map[string]int)
+	for rows.Next() {
+		var date string
+		if err := rows.Scan(&date); err != nil {
+			return nil, err
+		}
+		postCount[date]++
+	}
+	return postCount, nil
+}
 
-	// Public Routes
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/register", registerHandler)
-	http.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/logout", logoutHandler)
-	http.HandleFunc("/create-post", createPostHandler)
-	http.HandleFunc("/add-comment/{postID}", addCommentHandler)
-	http.HandleFunc("/post/", viewPostHandler)
-	http.HandleFunc("/like/{postID}", likePostHandler)
-	http.HandleFunc("/dislike/{postID}", dislikePostHandler)
-	http.HandleFunc("/like-comment/{postID}", likeCommentHandler)
-	http.HandleFunc("/dislike-comment/{postID}", dislikeCommentHandler)
-	http.HandleFunc("/filter", categoryFilterHandler)
+func userActivityChartHandler(w http.ResponseWriter, r *http.Request) {
+	userID := getUserID(r) // Get user ID from session or request
 
-	// Start the server
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	// Fetch post data
+	data, err := getUserPostData(userID)
+	if err != nil {
+		http.Error(w, "Error fetching user activity", http.StatusInternalServerError)
+		return
+	}
+
+	// Prepare data for the chart
+	var dates []string
+	var counts []opts.LineData
+	for date, count := range data {
+		dates = append(dates, date)
+		counts = append(counts, opts.LineData{Value: count})
+	}
+
+	// Create line chart
+	line := charts.NewLine()
+	line.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{Title: "User Post Activity"}),
+		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
+		charts.WithYAxisOpts(opts.YAxis{
+			Name:        "Posts",
+			Min:         0, // Ensure Y-axis starts at 0
+			MinInterval: 1, // Only show integer intervals
+			Type:        "value",
+			AxisLabel:   &opts.AxisLabel{Formatter: "{value}"}, // Forces integer display
+		}),
+	)
+	line.SetXAxis(dates).AddSeries("Posts", counts)
+
+	page := components.NewPage()
+	page.AddCharts(line)
+	page.Render(w)
 }
