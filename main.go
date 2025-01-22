@@ -14,6 +14,7 @@ import (
 	"github.com/go-echarts/go-echarts/v2/opts"
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
+	passwordvalidator "github.com/wagslane/go-password-validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -216,6 +217,8 @@ func invalidateSessionsForUser(email string) error {
 	return err
 }
 
+const minEntropyBits = 60
+
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Register handler received a request")
 
@@ -261,6 +264,13 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusConflict)
 		w.Write([]byte(errorPage))
+		return
+	}
+
+	// Validate password
+	err = passwordvalidator.Validate(password, minEntropyBits)
+	if err != nil {
+		http.Error(w, "Weak password: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
