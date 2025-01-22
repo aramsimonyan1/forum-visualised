@@ -70,10 +70,9 @@
                     <p><span class="fixed-content">Posted by: </span><strong>{{.Username}}</strong></p>
                     <p><span class="fixed-content">Title: </span><a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p> 
                     <p><span class="fixed-content">Category:</span>
-                        {{range $index, $category := .Categories}}
-                            {{if $index}}, {{end}}
-                            {{$category}}
-                        {{end}}
+                        {{range $index, $category := .Categories -}}
+                        {{if $index}}, {{end -}}{{$category}}
+                    {{- end -}}
                     </p>
                     <p><span class="fixed-content">Content: </span>{{.Content}}</p>
                     <p><span class="fixed-content">Created at: </span>{{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
@@ -174,12 +173,16 @@
             {{range .Posts}}
                 <div class="post">
                     <p>Title: <a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p>
-                    <p>Category: {{range .Categories}}{{.}}, {{end}}</p>
+                    <p>Category: 
+                        {{range $index, $category := .Categories -}}
+                        {{if $index}}, {{end -}}{{$category}}
+                    {{- end -}}
+                    </p>
                     <p>Content: {{.Content}}</p>
                     <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                     <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
                     {{range .Comments}}
-                        <div>
+                        <div>   
                             <p>Comment: {{.Content}}</p>
                             <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                             <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
