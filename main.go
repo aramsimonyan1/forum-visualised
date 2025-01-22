@@ -617,10 +617,12 @@ func getPostsByUser(userID string) ([]Post, error) {
 	var posts []Post
 
 	rows, err := db.Query(`
-		SELECT id, title, content, categories, created_at, likes_count, dislikes_count
+		SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
+		       posts.likes_count, posts.dislikes_count, users.username
 		FROM posts
-		WHERE user_id = ?
-		ORDER BY created_at DESC
+		JOIN users ON posts.user_id = users.id
+		WHERE posts.user_id = ?
+		ORDER BY posts.created_at DESC
 	`, userID)
 	if err != nil {
 		return nil, err
@@ -630,7 +632,8 @@ func getPostsByUser(userID string) ([]Post, error) {
 	for rows.Next() {
 		var post Post
 		var categoriesString string
-		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount)
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt,
+			&post.LikesCount, &post.DislikesCount, &post.Username)
 		if err != nil {
 			return nil, err
 		}
@@ -656,8 +659,9 @@ func getLikedPosts(userID string) ([]Post, error) {
 	var posts []Post
 
 	rows, err := db.Query(`
-		SELECT p.id, p.title, p.content, p.categories, p.created_at, p.likes_count, p.dislikes_count
+		SELECT p.id, p.title, p.content, p.categories, p.created_at, p.likes_count, p.dislikes_count, u.username
 		FROM posts p
+		JOIN users u ON p.user_id = u.id
 		INNER JOIN post_interactions pi ON p.id = pi.post_id
 		WHERE pi.user_id = ? AND pi.action = 'like'
 		ORDER BY p.created_at DESC
@@ -670,7 +674,7 @@ func getLikedPosts(userID string) ([]Post, error) {
 	for rows.Next() {
 		var post Post
 		var categoriesString string
-		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount)
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount, &post.Username)
 		if err != nil {
 			return nil, err
 		}
