@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Forum</title>
 </head>
 <body>
@@ -78,22 +79,19 @@
                     <p><span class="fixed-content">Created at: </span>{{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                     
                         <!-- Like and Dislike buttons for posts -->
-                        <div id="post-interactions-area">
-                            <div class="interaction-button">
-                                <form action="/like/{{.ID}}" method="post">
-                                    <button class="interaction-button" type="submit"><span class="fixed-content">Like</span></button>
+                        <div class="post-rating-container">
+                            <div class="post-raiting post-rating-selected">
+                                <form class="post-rating-form" action="/like/{{.ID}}" method="post">
+                                    <button class="post-rating-button material-icons" type="submit">thumb_up</button>
+                                    <span class="post-rating-count">{{.LikesCount}}</span>
                                 </form>
                             </div>
-                            <div class="interaction-count">
-                                Likes: {{.LikesCount}}
-                            </div>
-                            <div class="interaction-button"> 
-                                <form action="/dislike/{{.ID}}" method="post">
-                                    <button class="interaction-button" type="submit"><span class="fixed-content">Dislike</span></button>
-                                </form>
-                            </div>    
-                            <div class="interaction-count">
-                                Dislikes: {{.DislikesCount}}
+
+                            <div class="post-raiting post-rating-selected">
+                                <form class="post-rating-form" action="/dislike/{{.ID}}" method="post">
+                                    <button class="post-rating-button material-icons" type="submit">thumb_down</button>
+                                    <span class="post-rating-count">{{.DislikesCount}}</span>
+                                </form>  
                             </div>
                         </div>
                     {{range .Comments}}

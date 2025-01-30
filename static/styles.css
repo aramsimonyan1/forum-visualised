@@ -60,11 +60,8 @@ label {
 }
 
 button {
-    background-color: #4CAF50;
-    color: white;
     padding: 8px;
     border: none;
-    width: 150px;
     cursor: pointer;
     border-radius: 12px;
 }
@@ -150,18 +147,54 @@ a:active {
     background-color: #f0f0f0;
 }
 
-#post-interactions-area {
-    width: 50%;
-    display: grid;
-    grid-template-columns: 95px 300px;
-    justify-items: normal;
-    align-items: center;
+.post-rating-container{
+    display: flex;
+    align-items: center; /* Ensures vertical alignment */
+    justify-content: start;
+    gap: 16px;
 }
 
-.interaction-button, .interaction-count {
-    width: 30%;
-    margin-left: 5px;
-    margin-bottom: 5px;
+.post-rating {
+    display: flex;
+    align-items: center;
+    gap: 4spx;
+}
+
+.post-rating-form {
+    width: auto;
+    display: flex;
+    align-items: center; /* Ensures button and count align in the same row */
+    gap: 4px; /* Adds space between button and count */
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.post-rating:not(:last-child) {
+    margin-right: 6px;
+}
+
+.post-rating-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #555555;
+}
+
+.post-rating-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-rating-selcted > .post-rating-button,
+.post-rating-selcted > .post-rating-count {
+    color: #009578;
+}
+
+.post-rating:not(.post-rating-selcted) > .post-rating-button:hover {
+    color: #000000;
 }
 
 #commentDetails {
@@ -178,6 +211,10 @@ a:active {
     align-items: center;
 }
 
+.interaction-button {
+    padding: 4px;
+}
+
 .comm-interaction-button {
 background-color: rgb(243, 137, 55);
 color: white;
@@ -192,14 +229,6 @@ textarea {
     width: 350px;
 }
 
-button.interaction-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px;
-    border: none;
-    width: 75px;
-    cursor: pointer;
-}
 
 button.add-comment {
     background-color: rgb(243, 137, 55);
