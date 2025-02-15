@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -1129,9 +1130,16 @@ func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
 	// Prepare data for the chart
 	var dates []string
 	var counts []opts.LineData
-	for date, count := range data {
+
+	// Extract keys (dates) and sort them
+	for date := range data {
 		dates = append(dates, date)
-		counts = append(counts, opts.LineData{Value: count})
+	}
+	sort.Strings(dates) // Sort the dates in ascending order
+
+	// Append counts in the same order as sorted dates
+	for _, date := range dates {
+		counts = append(counts, opts.LineData{Value: data[date]})
 	}
 
 	// Create line chart
