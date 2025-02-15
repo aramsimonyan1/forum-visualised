@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"sort"
 	"strings"
 	"time"
 
@@ -1098,48 +1097,49 @@ func getPostByID(postID string) (*Post, error) {
 }
 
 // Retrieve the number of posts a user has made on each date.
-func getUserPostData(userID string) (map[string]int, error) {
-	rows, err := db.Query("SELECT DATE(created_at) FROM posts WHERE user_id = ?", userID)
+func getUserPostData(userID string) ([]string, []int, error) {
+	rows, err := db.Query(`
+        SELECT DATE(created_at), COUNT(*) 
+        FROM posts 
+        WHERE user_id = ? 
+        GROUP BY DATE(created_at) 
+        ORDER BY DATE(created_at)`, userID) // Ensures dates are returned in chronological order
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer rows.Close()
 
-	postCount := make(map[string]int)
+	var dates []string
+	var counts []int
+
 	for rows.Next() {
 		var date string
-		if err := rows.Scan(&date); err != nil {
-			return nil, err
+		var count int
+		if err := rows.Scan(&date, &count); err != nil {
+			return nil, nil, err
 		}
-		postCount[date]++
+		dates = append(dates, date)
+		counts = append(counts, count)
 	}
-	return postCount, nil
+
+	return dates, counts, nil
 }
 
 // Create chart for posts
 func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r) // Get user ID from session or request
+	userID := getUserID(r)
 
-	// Fetch post data
-	data, err := getUserPostData(userID)
+	// Fetch data
+	dates, counts, err := getUserPostData(userID)
 	if err != nil {
-		http.Error(w, "Error fetching user activity", http.StatusInternalServerError)
+		http.Error(w, "Error fetching user post activity", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare data for the chart
-	var dates []string
-	var counts []opts.LineData
-
-	// Extract keys (dates) and sort them
-	for date := range data {
-		dates = append(dates, date)
-	}
-	sort.Strings(dates) // Sort the dates in ascending order
-
-	// Append counts in the same order as sorted dates
-	for _, date := range dates {
-		counts = append(counts, opts.LineData{Value: data[date]})
+	// Prepare chart data
+	data := make([]opts.LineData, len(counts))
+	for i, v := range counts {
+		data[i] = opts.LineData{Value: v}
 	}
 
 	// Create line chart
@@ -1155,8 +1155,10 @@ func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
 			AxisLabel:   &opts.AxisLabel{Formatter: "{value}"}, // Forces integer display
 		}),
 	)
-	line.SetXAxis(dates).AddSeries("Posts", counts)
+	line.SetXAxis(dates).AddSeries("Posts", data)
 
+	// Render the chart
+	w.Header().Set("Content-Type", "text/html")
 	page := components.NewPage()
 	page.AddCharts(line)
 	page.Render(w)
@@ -1202,7 +1204,7 @@ func userCommentChartHandler(w http.ResponseWriter, r *http.Request) {
 	// Create chart
 	line := charts.NewLine()
 	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "User Comment Activity"}),
+		charts.WithTitleOpts(opts.Title{Title: "Comment Activity on User's Posts"}),
 		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name:        "Comments",
