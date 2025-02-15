@@ -48,6 +48,7 @@ type PostInteraction struct {
 type Comment struct {
 	ID            string
 	PostID        string
+	Username      string
 	Content       string
 	CreatedAt     time.Time
 	LikesCount    int
@@ -125,11 +126,13 @@ func initDB() {
 		CREATE TABLE IF NOT EXISTS comments (
 			id TEXT PRIMARY KEY,
 			post_id TEXT,
+			user_id TEXT,
 			content TEXT,
 			created_at TIMESTAMP,
 			likes_count INT DEFAULT 0,
             dislikes_count INT DEFAULT 0,
-            FOREIGN KEY (post_id) REFERENCES posts(id)
+            FOREIGN KEY (post_id) REFERENCES posts(id),
+			FOREIGN KEY (user_id) REFERENCES users(id)
 		)
 	`)
 	if err != nil {
@@ -505,12 +508,11 @@ func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
 
 // getCommentsForPost retrieves all comments for a specific post from the database
 func getCommentsForPost(postID string) ([]Comment, error) {
-	var comments []Comment
-
 	rows, err := db.Query(`
-		SELECT id, post_id, content, created_at, likes_count, dislikes_count
+		SELECT comments.id, comments.post_id, users.username, comments.content, comments.created_at, comments.likes_count, comments.dislikes_count
 		FROM comments
-		WHERE post_id = ?
+		JOIN users ON comments.user_id = users.id
+		WHERE comments.post_id = ?
 		ORDER BY created_at DESC
 	`, postID)
 	if err != nil {
@@ -518,14 +520,15 @@ func getCommentsForPost(postID string) ([]Comment, error) {
 	}
 	defer rows.Close()
 
+	var comments []Comment
 	for rows.Next() {
-		var comment Comment
-		err := rows.Scan(&comment.ID, &comment.PostID, &comment.Content, &comment.CreatedAt, &comment.LikesCount, &comment.DislikesCount)
+		var c Comment
+		err := rows.Scan(&c.ID, &c.PostID, &c.Username, &c.Content, &c.CreatedAt, &c.LikesCount, &c.DislikesCount)
 		if err != nil {
 			return nil, err
 		}
 
-		comments = append(comments, comment)
+		comments = append(comments, c)
 	}
 	return comments, nil
 }
@@ -763,6 +766,8 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// User is logged in, proceed with comment creation
 
+	userID := getUserID(r) // Function that retrieves user ID from the session
+
 	// Parse the form data
 	err = r.ParseForm()
 	if err != nil {
@@ -770,17 +775,15 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Retrieve form data
-	// postID := r.Form.Get("postID")
 	// Extract post ID from the URL path and the content from the form
 	postID := extractPostID(r.URL.Path)
 	content := r.Form.Get("commentContent")
 
 	// Insert the comment into the database
 	_, err = db.Exec(`
-        INSERT INTO comments (id, post_id, content, created_at)
-        VALUES (?, ?, ?, ?)
-    `, uuid.New().String(), postID, content, time.Now().Format("2006-01-02 15:04:05"))
+        INSERT INTO comments (id, post_id, user_id, content, created_at)
+        VALUES (?, ?, ?, ?, ?)
+    `, uuid.New().String(), postID, userID, content, time.Now().Format("2006-01-02 15:04:05"))
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

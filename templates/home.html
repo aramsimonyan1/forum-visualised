@@ -96,6 +96,7 @@
                         </div>
                     {{range .Comments}}
                         <div id="commentDetails"> 
+                                <p>Commented by: {{.Username}}</p>
                                 <p>Comment: {{.Content}}</p>
                                 <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                                 <!-- Like and Dislike buttons for comments -->
@@ -180,7 +181,7 @@
                     <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                     <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
                     {{range .Comments}}
-                        <div>   
+                        <div id="commentDetails">   
                             <p>Comment: {{.Content}}</p>
                             <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
                             <p>Likes: {{.LikesCount}}, Dislikes: {{.DislikesCount}}</p>
