@@ -13,7 +13,7 @@
     {{if .IsLoggedIn}}
         <div class="logout">
             <form action="/logout" method="post">
-                <button type="submit">Logout</button>
+                <button class="material-icons" title="Logout" type="submit">logout</button>
             </form>
         </div>
 
@@ -44,7 +44,7 @@
         <br><br> 
         <!-- filtering options for logged in users -->
         <form method="GET" action="/">
-            <label for="category"><button type="submit">Filter by category: </button></label>
+            <label for="category"><button class="material-icons" type="submit" title="Filter by category">filter_alt</button></label>
             <select name="category" id="category">
                 <option value="" {{if eq .SelectedCategory ""}}selected{{end}}>All categories</option>
                 <option value="food" {{if eq .SelectedCategory "food"}}selected{{end}}>Food</option>
