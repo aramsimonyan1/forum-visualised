@@ -7,165 +7,165 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Forum</title>
 </head>
-<body>
-    <h1>Welcome to the Forum</h1>
 
+<body class="{{if .IsLoggedIn}}logged-in{{else}}not-logged-in{{end}}">
     {{if .IsLoggedIn}}
-        <div class="logout">
-            <form action="/logout" method="post">
-                <button class="material-icons" title="Logout" type="submit">logout</button>
+        <header>
+            <h1>Welcome to the Forum</h1>
+            <div class="logout">
+                <form action="/logout" method="post">
+                    <button class="material-icons" title="Logout" type="submit">logout</button>
+                </form>
+            </div>
+        </header>
+
+        <!-- filtering options for logged in users -->
+        <div class="sidebar">
+            <form method="GET" action="/">
+                <label for="category"></label>
+                <select name="category" id="category">
+                    <option value="" {{if eq .SelectedCategory ""}}selected{{end}}>All categories</option>
+                    <option value="food" {{if eq .SelectedCategory "food"}}selected{{end}}>Food</option>
+                    <option value="politics" {{if eq .SelectedCategory "politics"}}selected{{end}}>Politics</option>
+                    <option value="sport" {{if eq .SelectedCategory "sport"}}selected{{end}}>Sport</option>
+                    <option value="tech" {{if eq .SelectedCategory "tech"}}selected{{end}}>Tech</option>
+                </select>
+                <button class="filter material-icons" type="submit" title="Filter by category">filter_alt</button>
             </form>
+
+            <!-- Two buttons for user's posts, and liked posts -->
+            <div class="button-container">
+                <form method="get" action="/">
+                    <button type="submit" name="filter" value="user">My Posts</button>
+                </form>
+                <form method="get" action="/">
+                    <button type="submit" name="filter" value="liked">Liked Posts</button>
+                </form>
+            </div>
+
+            <form action="/post-chart" method="post">
+                <button class="material-icons" title="My post activity chart" type="submit">show_chart</button>
+            </form>
+
+            <a href="/comment-chart">Comment Activity on My Posts</a>
         </div>
 
-        <!-- Post creation form for users who are logged in-->
-        <h2>Create a Post</h2>
-        <form action="/create-post" method="post">
-            <label for="title"></label>
-            <input type="text" id="title" name="title" placeholder="post title" required>
+        <div class="createANDfetch">
+            <!-- Post creation form for users who are logged in-->
+            <h2>Create a Post</h2>
+            <div class="post-title-cat-content">
+                <form action="/create-post" method="post">
+                    <label for="title"></label>
+                    <input type="text" id="title" name="title" placeholder="Type post title here..." required>
 
-            <div id="avalable-categories">
-                <label for="category">Category:</label>
-                <select id="categories" name="categories[]" multiple required>
-                    <option value="food">Food</option>
-                    <option value="politics">Politics</option>
-                    <option value="sport">Sport</option>
-                    <option value="tech">Tech</option>
-                </select>
+                    <div id="avalable-categories">
+                        <label for="category">Category:</label>
+                        <select id="categories" name="categories[]" multiple required>
+                            <option value="food">Food</option>
+                            <option value="politics">Politics</option>
+                            <option value="sport">Sport</option>
+                            <option value="tech">Tech</option>
+                        </select>
+                    </div>
+
+                    <label for="content"></label>
+                    <textarea id="content" name="content" rows="6" placeholder="Type post content here..." required></textarea>
+                </form>        
+                    <div class="create-post">
+                        <button class="create-post material-icons" type="submit" title="Create post">chat</button>
+                    </div>
             </div>
 
-            <label for="content"></label>
-            <textarea id="content" name="content" rows="6" placeholder="post content" required></textarea>
 
-            <div class="create-post">
-                <button type="submit"><span class="fixed-content">Create Post</span></button>
-            </div>
-        </form>
-
-        <br><br> 
-        <!-- filtering options for logged in users -->
-        <form method="GET" action="/">
-            <label for="category"><button class="material-icons" type="submit" title="Filter by category">filter_alt</button></label>
-            <select name="category" id="category">
-                <option value="" {{if eq .SelectedCategory ""}}selected{{end}}>All categories</option>
-                <option value="food" {{if eq .SelectedCategory "food"}}selected{{end}}>Food</option>
-                <option value="politics" {{if eq .SelectedCategory "politics"}}selected{{end}}>Politics</option>
-                <option value="sport" {{if eq .SelectedCategory "sport"}}selected{{end}}>Sport</option>
-                <option value="tech" {{if eq .SelectedCategory "tech"}}selected{{end}}>Tech</option>
-            </select>
-        </form>
-        <br><br>
-
-        <!-- Add two buttons for user's posts, and liked posts -->
-        <form method="get" action="/">
-            <button type="submit" name="filter" value="user">My Posts</button>
-            <button type="submit" name="filter" value="liked">Liked Posts</button>
-        </form>
-
-        <a href="/post-chart">View My Post Activity</a>
-        <a href="/comment-chart">View Comment Activity on My Posts</a>
-
-        <!-- Display posts for users who are logged in -->
-        {{range .Posts}}
-            <div class="posts-container">
-                <div class="post" id="post-{{.ID}}">
-                    <p><span class="fixed-content">Posted by: </span><strong>{{.Username}}</strong></p>
-                    <p><span class="fixed-content">Title: </span><a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p> 
-                    <p><span class="fixed-content">Category:</span>
-                        {{range $index, $category := .Categories -}}
-                        {{if $index}}, {{end -}}{{$category}}
-                    {{- end -}}
-                    </p>
-                    <p><span class="fixed-content">Content: </span>{{.Content}}</p>
-                    <p><span class="fixed-content">Created at: </span>{{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
-                    
-                        <!-- Like and Dislike buttons for posts -->
-                        <div class="post-rating-container">
-                            <div class="post-raiting post-rating-selected">
-                                <form class="post-rating-form" action="/like/{{.ID}}" method="post">
-                                    <button class="post-rating-button material-icons" type="submit">thumb_up</button>
-                                    <span class="post-rating-count">{{.LikesCount}}</span>
-                                </form>
-                            </div>
-
-                            <div class="post-raiting post-rating-selected">
-                                <form class="post-rating-form" action="/dislike/{{.ID}}" method="post">
-                                    <button class="post-rating-button material-icons" type="submit">thumb_down</button>
-                                    <span class="post-rating-count">{{.DislikesCount}}</span>
-                                </form>  
-                            </div>
-                        </div>
-                    {{range .Comments}}
-                        <div id="commentDetails"> 
-                                <p>Commented by: {{.Username}}</p>
-                                <p>Comment: {{.Content}}</p>
-                                <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
-                                <!-- Like and Dislike buttons for comments -->
-                            <div class="comm-interactions-area" id="comment-{{.ID}}">
-                                <div class="interaction-button">
-                                    <form action="/like-comment/{{.ID}}" method="post">
-                                        <button class="comm-interaction-button" type="submit">Like</button>
+            <!-- Display posts for users who are logged in -->
+            {{range .Posts}}
+                <div class="posts-container">
+                    <div class="post" id="post-{{.ID}}">
+                        <p><span class="fixed-content">Posted by: </span><strong>{{.Username}}</strong></p>
+                        <p><span class="fixed-content">Title: </span><a href="/post/{{.ID}}" target="_blank">{{.Title}}</a></p> 
+                        <p><span class="fixed-content">Category:</span>
+                            {{range $index, $category := .Categories -}}
+                            {{if $index}}, {{end -}}{{$category}}
+                        {{- end -}}
+                        </p>
+                        <p><span class="fixed-content">Content: </span>{{.Content}}</p>
+                        <p><span class="fixed-content">Created at: </span>{{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                        
+                            <!-- Like and Dislike buttons for posts -->
+                            <div class="post-rating-container">
+                                    <form class="post-rating-form" action="/like/{{.ID}}" method="post">
+                                        <button class="post-rating-button material-icons" type="submit">thumb_up</button>
+                                        <span class="post-rating-count">{{.LikesCount}}</span>
                                     </form>
-                                </div>
-                                <div class="interaction-count">
-                                    Likes: {{.LikesCount}}
-                                </div>
-                                <div class="interaction-button"> 
-                                    <form action="/dislike-comment/{{.ID}}" method="post">
-                                        <button class="comm-interaction-button" type="submit">Dislike</button>
-                                    </form>
-                                </div>
-                                <div class="interaction-count"> 
-                                    Dislikes: {{.DislikesCount}}
+
+                                    <form class="post-rating-form" action="/dislike/{{.ID}}" method="post">
+                                        <button class="post-rating-button material-icons" type="submit">thumb_down</button>
+                                        <span class="post-rating-count">{{.DislikesCount}}</span>
+                                    </form>  
+                            </div>
+                        {{range .Comments}}
+                            <div id="commentDetails"> 
+                                    <p>Commented by: {{.Username}}</p>
+                                    <p>Comment: {{.Content}}</p>
+                                    <p>Created at: {{.CreatedAt.Format "15:04:05 02/01/2006"}}</p>
+                                    <!-- Like and Dislike buttons for comments -->
+                                <div class="comm-interactions-area" id="comment-{{.ID}}">
+                                    <div class="interaction-button">
+                                        <form action="/like-comment/{{.ID}}" method="post">
+                                            <button class="comm-interaction-button" type="submit">Like</button>
+                                        </form>
+                                    </div>
+                                    <div class="interaction-count">
+                                        Likes: {{.LikesCount}}
+                                    </div>
+                                    <div class="interaction-button"> 
+                                        <form action="/dislike-comment/{{.ID}}" method="post">
+                                            <button class="comm-interaction-button" type="submit">Dislike</button>
+                                        </form>
+                                    </div>
+                                    <div class="interaction-count"> 
+                                        Dislikes: {{.DislikesCount}}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {{end}}
-            
-                    <!-- Comment creation form -->
-                    <form action="/add-comment/{{.ID}}" method="post">
-                        <label for="commentContent"></label>
-                        <textarea id="commentContent" name="commentContent" rows="3" placeholder="type your comment" required></textarea>
-                        <div class="create-post">
-                            <button class="add-comment" type="submit">Add Comment</button>
-                        </div>
-                    </form>
-                </div>     
-            </div>
-        {{end}}   
-
+                        {{end}}
+                
+                        <!-- Comment creation form -->
+                        <form action="/add-comment/{{.ID}}" method="post">
+                            <label for="commentContent"></label>
+                            <textarea id="commentContent" name="commentContent" rows="3" placeholder="Type your comment..." required></textarea>
+                            <div class="create-post">
+                                <button class="add-comment material-icons" type="submit" title="Add comment">forum</button>
+                            </div>
+                        </form>
+                    </div>     
+                </div>
+            {{end}}   
+        </div>
+    
+    <!-- Display login and registration forms for users who are not logged in -->
     {{else}}
-        <div class="please-log-in"><p>You are not logged in. Please log in or register.</p></div>
+    <div class="not-logged-content">
+        <div class="please-log-in">Please log in or register to access the Forum.</div>
         <div class="auth-forms">
             <div class="login-form">
                 <div class="Login-Register"><h2>Log in</h2></div>
                 <form action="/login" method="post">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-            
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-            
+                    <input type="email" id="email" name="email" placeholder="EMAIL" required>
+                    <input type="password" id="password" name="password" placeholder="PASSWORD" required>
                     <button type="submit">Login</button>
                 </form>
             </div>    
             <div class="register-form">
                 <div class="Login-Register"><h2>Register</h2></div>
                 <form action="/register" method="post">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-            
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-            
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-            
+                    <input type="email" id="email" name="email" placeholder="EMAIL" required>
+                    <input type="text" id="username" name="username" placeholder="USERNAME" required>
+                    <input type="password" id="password" name="password" placeholder="PASSWORD" required>
                     <button type="submit">Register</button>
                 </form>
             </div>
         </div>
-
-        <br><br>
 
         <!-- Display posts for users who are not logged in -->
         <div class="posts-container">
@@ -189,6 +189,8 @@
                     {{end}}
                 </div>          
             {{end}}
+        </div>
+    </div>
     {{end}}
 </body>
 </html>

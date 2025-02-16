@@ -1,19 +1,75 @@
 /* static/styles.css */
 
-body {
+body.logged-in {
     font-family: Arial, Helvetica, sans-serif;
     background-color: rgb(215, 218, 223);
     margin: 20px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 25% 1fr;
+    height: 100vh;
 }
 
-h1{
-    text-align: center;
-    margin-top: 40px;
+body.not-logged-in {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: rgb(215, 218, 223);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    grid-column: span 2;
+    background-color: #333;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar {
+    background-color: #f4e110;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sidebar form {
+    gap: 5px;
+    display: flex;
+    justify-content: flex-start; /* Moves elements to the left */
+    align-items: center; /* Vertically centers elements */
+    width: 100%;
+}
+
+.sidebar button:hover {
+    color: red;
+}
+
+.createANDfetch {
+    padding: 15px;
+    overflow-y: auto;
+}
+
+
+.not-logged-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
 }
 
 .please-log-in {
-    text-align: center;
-    margin-top: 40px;
+    padding-top: 15px ;
+    align-content: center; /* Vertically centers elements */
+    text-align: center; /* Centers text */
+    font-size: 24px;
+    font-weight: bold;
+    width: 100%;
+    letter-spacing: 3px;
 }
 
 h2 {
@@ -22,10 +78,12 @@ h2 {
     text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
 }
 
-/* styles for the auth forms */
 .auth-forms {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Centers forms */
+    gap: 50px; /* Adds space between login and register forms */
+    padding-top: 30px;
+    padding-bottom: 50px;
 }
 
 .Login-Register{
@@ -33,22 +91,28 @@ h2 {
 }
 
 .login-form, .register-form {
-    /* Add styles... */
     display: inline-block;
-    width: 40%; 
+    width: 300px; 
 }
 
-form {
-    width: 350px;
-    margin: 0 auto;
-}
-
-input {
+.post-title-cat-content input {
     width: 350px;
     margin-bottom: 10px;
     line-height: 36px;
     border-radius: 12px;
     border: none;
+    color: black;
+}
+
+.auth-forms input {
+    width: 300px;
+    margin-bottom: 10px;
+    line-height: 36px;
+    border-radius: 12px;
+    border: none;
+    color: black;
+    font-size: 10px;
+    letter-spacing: 3px;
 }
 
 label {
@@ -56,7 +120,6 @@ label {
     text-transform: uppercase;
     font-size: 10px;
     letter-spacing: 2px;
-    padding-left: 10px;
 }
 
 button {
@@ -92,22 +155,40 @@ a:active {
 .logout {
     display: flex;
     justify-content: flex-end;
-    align-items: center;
     padding: 10px;
-    position: fixed;
-    top: 0;
-    right: 0;
-    color: white;
     width: 100px;
 }
 
-.logout button{
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adds space between buttons */
+}
+
+.button-container button {
+    width: 85px;
+}
+
+.logout button {
     margin-left: 10px;
     background-color: rgb(4, 0, 255);
+    color: white;
     width: 80px; 
     height: 40px;
     border-radius: 12px;
     border: none;
+}
+
+.logout button:hover {
+    color: #000000;
+}
+
+select {
+    font-size: 14px;
+}
+
+.sidebar select {
+    height: 30px;
 }
 
 #avalable-categories {
@@ -123,6 +204,23 @@ a:active {
     align-items: center;
 }
 
+button.create-post {
+    margin-top: 10px;
+    color: #555555;
+    width: 75px;
+    margin-bottom: 20px;   
+}
+
+button.create-post:hover {
+    color: #000000;
+}
+
+.post-title-cat-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .fixed-content {
     font-weight: bold;
 }
@@ -130,21 +228,19 @@ a:active {
 .posts-container {
     display: flex;
     flex-flow: column;
+    width: 100%;
 }
 
-/* the style for posts */
 .post {
     flex: 0 0 calc(23.333% - 20px);
     padding: 10px;
     border: 1px solid #a7a6a6;
     margin-bottom: 5px;
     margin-top: 10px;
-    transition: background-color 0.3s ease;
 }
 
-/* the hover effect */
 .post:hover {
-    background-color: #f0f0f0;
+    background-color: rgba(180, 177, 177, 0.3); /* Slightly different shade */
 }
 
 .post-rating-container{
@@ -152,12 +248,6 @@ a:active {
     align-items: center; /* Ensures vertical alignment */
     justify-content: start;
     gap: 16px;
-}
-
-.post-rating {
-    display: flex;
-    align-items: center;
-    gap: 4spx;
 }
 
 .post-rating-form {
@@ -188,19 +278,17 @@ a:active {
     justify-content: center;
 }
 
-.post-rating-selcted > .post-rating-button,
-.post-rating-selcted > .post-rating-count {
-    color: #009578;
-}
-
-.post-rating:not(.post-rating-selcted) > .post-rating-button:hover {
+.post-rating-button:hover {
     color: #000000;
 }
 
 #commentDetails {
     margin-top: 50px;
     margin-left: 100px;
+}
 
+#commentContent {
+    align-items: center;
 }
 
 .comm-interactions-area {
@@ -215,6 +303,13 @@ a:active {
     padding: 4px;
 }
 
+form[action^="/add-comment"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; 
+}
+
 .comm-interaction-button {
 background-color: rgb(243, 137, 55);
 color: white;
@@ -225,16 +320,19 @@ cursor: pointer;
 }
 
 textarea {
+    font-family: Arial, Helvetica, sans-serif !important;
     margin-top: 10px;
     width: 350px;
 }
 
-
 button.add-comment {
-    background-color: rgb(243, 137, 55);
-    color: white;
-    padding: 8px;
+    background-color: rgb(249, 149, 72);
     border: none;
-    width: 105px;
+    width: 55px;
     cursor: pointer;
+    color: white;
+}
+
+button.add-comment:hover {
+    color: #000000;
 }

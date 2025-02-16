@@ -1204,7 +1204,7 @@ func userCommentChartHandler(w http.ResponseWriter, r *http.Request) {
 	// Create chart
 	line := charts.NewLine()
 	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "Comment Activity on User's Posts"}),
+		charts.WithTitleOpts(opts.Title{Title: "Comment Activity on Your Posts"}),
 		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name:        "Comments",
