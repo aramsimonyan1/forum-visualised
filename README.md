@@ -11,19 +11,6 @@ This project explores the development of a forum application designed to enhance
     Bycrypt hashing function and go-password-validator package are used to ensure security in authentication process.
     Application containerisation with Docker simplifies dependency management and cross-environment deployment.
 
-## To run the app:
-
-Type in terminal (you may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks).
-    $go run main.go   
-
-    To run with docker:
-    $docker image build -t my-forum-app .  
-    $docker container run -p 8080:8080 my-forum-app
-
-    Open your web browser and navigate to http://localhost:8080.
-    The forum webpage should now be able to Register or Login to the platform.
-
-
 ### List of functions:
     func initDB()
     func main()
@@ -68,3 +55,16 @@ Type in terminal (you may wait a few seconds and allow the firewall to enable so
     func userPostChartHandler(w http.ResponseWriter, r *http.Request) 
     func getUserCommentData(userID string) ([]string, []int)
     func userCommentChartHandler(w http.ResponseWriter, r *http.Request)
+
+## To run the app:
+
+Type in terminal (you may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks).
+
+    $go run main.go   
+
+    To run with docker:
+    $docker image build -t my-forum-app .  
+    $docker container run -p 8080:8080 my-forum-app
+
+    Open your web browser and navigate to http://localhost:8080.
+    The forum webpage should now be able to Register or Login to the platform.
