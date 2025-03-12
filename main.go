@@ -578,7 +578,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		// Retrieve posts liked by the user
 		posts, err = getLikedPosts(getUserID(r))
 	default:
-		// Retrieve all posts
+		// Retrieve selected category posts
 		posts, err = getPostsFromDatabase(categoryFilter)
 	}
 
@@ -1164,7 +1164,7 @@ func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
 	page.Render(w)
 }
 
-// Retrieve the number of comments a user has made on each date.
+// Retrieve the number of comments has been made on user posts on each date.
 func getUserCommentData(userID string) ([]string, []int) {
 	rows, err := db.Query(`
         SELECT DATE(created_at) as date, COUNT(*) 
