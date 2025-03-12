@@ -1,5 +1,6 @@
 ## Web based forum application with user activities visualisation. 
 Version 1.0 May 2025
+
 Author: Aram Simonyan 
 
 This project explores the development of a forum application designed to enhance user engagement and provide insightful activity visualisations. The primary objective is to create a user-friendly and scalable platform where participants can interact through discussions while gaining valuable insights into their activity patterns.
