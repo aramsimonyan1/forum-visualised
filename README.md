@@ -27,6 +27,7 @@ This project explores the development of a forum application designed to enhance
 ### List of functions:
 
 func initDB()
+
 func main()
 func getUserID(r *http.Request) string 
 func invalidateSessionsForUser(email string) error
