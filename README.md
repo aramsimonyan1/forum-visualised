@@ -1,7 +1,6 @@
 # BSc Data Science and Computing project
 
-# Author: Aram Simonyan (May 2025)
-
+## Author: Aram Simonyan (May 2025)
 ###
 This project explores the development of a forum application designed to enhance user engagement and provide insightful activity visualisations. The primary objective is to create a user-friendly and scalable platform where participants can interact through discussions while gaining valuable insights into their activity patterns.
 
@@ -17,7 +16,6 @@ This project explores the development of a forum application designed to enhance
     $go run main.go   
     (You may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks)
 
-
     To run with docker:
     $docker image build -t my-forum-app .  
     $docker container run -p 8080:8080 my-forum-app
@@ -27,6 +25,7 @@ This project explores the development of a forum application designed to enhance
 
 
 ### List of functions:
+
 func initDB()
 func main()
 func getUserID(r *http.Request) string 
