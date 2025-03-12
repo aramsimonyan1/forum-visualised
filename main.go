@@ -168,7 +168,6 @@ func main() {
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/create-post", createPostHandler)
 	http.HandleFunc("/add-comment/{postID}", addCommentHandler)
-	http.HandleFunc("/post/", viewPostHandler)
 	http.HandleFunc("/like/{postID}", likePostHandler)
 	http.HandleFunc("/dislike/{postID}", dislikePostHandler)
 	http.HandleFunc("/like-comment/{postID}", likeCommentHandler)
@@ -792,27 +791,6 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect back to the home page
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func viewPostHandler(w http.ResponseWriter, r *http.Request) {
-	// Retrieve post ID from the URL
-	postID := extractPostID(r.URL.Path)
-
-	// Retrieve post details from the database
-	post, err := getPostByID(postID)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	// Render the post page
-	tmpl, err := template.ParseFiles("templates/post.html")
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	tmpl.Execute(w, post)
 }
 
 func likePostHandler(w http.ResponseWriter, r *http.Request) {
