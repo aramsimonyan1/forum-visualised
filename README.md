@@ -1,4 +1,5 @@
 # BSc Data Science and Computing project
+Web based forum application with user activities visualisation.
 
 ## Author: Aram Simonyan (May 2025)
 ###
@@ -58,7 +59,7 @@ This project explores the development of a forum application designed to enhance
 
 ## To run the app:
 
-Type in terminal (you may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks).
+Type in the terminal (you may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks).
 
     $go run main.go   
 
