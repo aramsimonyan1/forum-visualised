@@ -167,14 +167,14 @@ func main() {
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/create-post", createPostHandler)
-	http.HandleFunc("/add-comment/{postID}", addCommentHandler)
 	http.HandleFunc("/like/{postID}", likePostHandler)
 	http.HandleFunc("/dislike/{postID}", dislikePostHandler)
+	http.HandleFunc("/add-comment/{postID}", addCommentHandler)
 	http.HandleFunc("/like-comment/{postID}", likeCommentHandler)
 	http.HandleFunc("/dislike-comment/{postID}", dislikeCommentHandler)
 	http.HandleFunc("/filter", categoryFilterHandler)
-	http.HandleFunc("/post-chart", userPostChartHandler)
-	http.HandleFunc("/comment-chart", userCommentChartHandler)
+	http.HandleFunc("/posts-chart", userPostsChartHandler)
+	http.HandleFunc("/comments-chart", commentsOnUserPostsChartHandler)
 
 	// Start the server
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -1104,7 +1104,7 @@ func getUserPostData(userID string) ([]string, []int, error) {
 }
 
 // Create chart for posts
-func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
+func userPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 
 	// Fetch data
@@ -1143,7 +1143,7 @@ func userPostChartHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Retrieve the number of comments has been made on user posts on each date.
-func getUserCommentData(userID string) ([]string, []int) {
+func getCommentsDataOnUserPosts(userID string) ([]string, []int) {
 	rows, err := db.Query(`
         SELECT DATE(created_at) as date, COUNT(*) 
         FROM comments 
@@ -1173,11 +1173,11 @@ func getUserCommentData(userID string) ([]string, []int) {
 	return dates, counts
 }
 
-func userCommentChartHandler(w http.ResponseWriter, r *http.Request) {
+func commentsOnUserPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r) // Get user ID from session or request
 
 	// Fetch data
-	dates, counts := getUserCommentData(userID)
+	dates, counts := getCommentsDataOnUserPosts(userID)
 
 	// Create chart
 	line := charts.NewLine()
