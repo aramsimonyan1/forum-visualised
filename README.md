@@ -12,9 +12,9 @@ This project explores the development of a forum application designed to enhance
     Application containerisation with Docker simplifies dependency management and cross-environment deployment.
 
 ## To run the app:
-### Type in terminal 
+
+Type in terminal (you may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks).
     $go run main.go   
-    (You may wait a few seconds and allow the firewall to enable some features of main.exe on public and private networks)
 
     To run with docker:
     $docker image build -t my-forum-app .  
