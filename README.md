@@ -1,4 +1,5 @@
-## Web based forum application with user activities visualisation. (version 1.0 May 2025)
+## Web based forum application with user activities visualisation. 
+(version 1.0 May 2025)
 
 ### Author: Aram Simonyan 
 
