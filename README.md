@@ -1,5 +1,4 @@
-# BSc Data Science and Computing project
-Web based forum application with user activities visualisation.
+# Web based forum application with user activities visualisation.
 
 ## Author: Aram Simonyan (May 2025)
 ###
