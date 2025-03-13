@@ -1054,30 +1054,6 @@ func removeCommentInteraction(userID, commentID string) {
 	}
 }
 
-// splitCategories splits a comma-separated string into a slice of strings
-func splitCategories(categoriesString string) []string {
-	return strings.Split(categoriesString, ",")
-}
-
-// ...
-func getPostByID(postID string) (*Post, error) {
-	var post Post
-	var categoriesString string
-	err := db.QueryRow(`
-		SELECT id, title, content, categories, created_at, likes_count, dislikes_count
-		FROM posts
-		WHERE id = ?
-	`, postID).Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert the comma-separated string to a slice of strings
-	post.Categories = splitCategories(categoriesString)
-
-	return &post, nil
-}
-
 // Retrieve the number of posts a user has made on each date.
 func getUserPostData(userID string) ([]string, []int, error) {
 	rows, err := db.Query(`
