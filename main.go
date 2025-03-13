@@ -219,19 +219,21 @@ func invalidateSessionsForUser(email string) error {
 	return err
 }
 
+// Variable represents the minimum required password entropy, which is a measure of password strength based on unpredictability.
 const minEntropyBits = 60
 
+// Function ensures that new users can securely create accounts in the forum application.
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Register handler received a request")
-
+	// Only HTTP POST requests are processed. Return HTTP 405 otherwise.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Parse form data. Handle HTTP status 400 - Bad Requests
+	// Parse the form data. Return HTTP 400 response if it fails.
 	err := r.ParseForm()
-	if err != nil { // ...if the form data cannot be parsed..
+	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
@@ -269,7 +271,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate password
+	// The entered password is validated using a password strength checker
 	err = passwordvalidator.Validate(password, minEntropyBits)
 	if err != nil {
 		http.Error(w, "Weak password: "+err.Error(), http.StatusBadRequest)
@@ -284,7 +286,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return // returns an HTTP 500 Internal Server Error response using http.Error.
 	}
 
-	// Insert the user into the database
+	// Generate a unique user ID and insert the user details into the database
 	userID := uuid.New().String()
 	_, err = db.Exec(`
         INSERT INTO users (id, email, username, password)
@@ -296,29 +298,32 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If all steps succeeded print in the terminal,
 	fmt.Println("Successfully registered a new user")
 
-	// Redirect to the home page to login
+	// as well as in web browser URL address bar, and redirect to the home page to log in.
 	http.Redirect(w, r, "/home?message=Registration%20successful", http.StatusSeeOther)
 }
 
+// Makes database query to count occurrences of the given email in the users table. If the email exists, the function returns an error message.
 func emailExists(email string) bool {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", email).Scan(&count)
 	if err != nil {
 		log.Println(err)
-		return true // Assume email exists in case of an error
+		return true
 	}
 	return count > 0
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+	// Only HTTP POST requests are processed. Return HTTP 405 otherwise.
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Parse form data
+	// Parse the form data. Return HTTP 400 response if it fails.
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -329,7 +334,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 
-	// Retrieve user from the database
+	// Query users table for the corresponding email
 	var userID, hashedPassword string
 	err = db.QueryRow(`
 		SELECT id, password
@@ -358,7 +363,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Invalidate existing sessions for the user
+	// Invalidate existing sessions (if any) for the user
 	err = invalidateSessionsForUser(email)
 	if err != nil {
 		log.Println(err)
@@ -370,12 +375,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		errorMessage := "Invalid password. Please try again."
-		// Display an error message and redirect after 5 seconds
+		// Display an error message and redirect after 4 seconds
 		errorPage := fmt.Sprintf(`
             <html>
 				<body>
 					<p style="font-size: 2em;">%s</p>
-                    <meta http-equiv="refresh" content="5;url=/">
+                    <meta http-equiv="refresh" content="4;url=/">
                 </body>
             </html>
         `, errorMessage)
@@ -385,11 +390,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// After successful login, create a new session ID
+	// Generate a unique session ID and print in the terminal
 	sessionID := uuid.New().String()
 	log.Printf("User %s logged in. New session ID: %s\n", email, sessionID)
 
-	// Store the user's email in the session for consistent identification
+	// Store the session ID and user's email in the sessions table for consistent identification
 	_, err = db.Exec(`
         INSERT INTO sessions (session_id, user_email)
         VALUES (?, ?)
@@ -400,10 +405,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Store the session ID in a cookie named forum-session with an expiration time of 24 hours.
 	http.SetCookie(w, &http.Cookie{
 		Name:    "forum-session",
 		Value:   sessionID,
-		Expires: time.Now().Add(24 * time.Hour), // Set expiration time
+		Expires: time.Now().Add(1 * time.Hour),
 		Path:    "/",
 	})
 
@@ -538,7 +544,6 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	isLoggedIn := false // Initialize isLoggedIn to false
 
 	if err != nil || cookie.Value == "" {
-		// No cookie, user is not logged in
 		log.Println("No session cookie found. User is not logged in.")
 	} else {
 		// There is a cookie, check if the session is valid
@@ -557,7 +562,6 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 				Path:    "/",
 			})
 		} else {
-			// Session is valid
 			isLoggedIn = true
 			log.Println("Session is valid. User is logged in.")
 		}
