@@ -184,6 +184,7 @@ func main() {
 func getUserID(r *http.Request) string { // Takes an http.Request object (r) as its parameter. This object represents an incoming HTTP request.
 	cookie, err := r.Cookie("forum-session") // Attempt to retrieve the "forum-session" cookie from the request
 	if err != nil || cookie.Value == "" {    // if there is an error retrieving the cookie (e.g. the cookie is not present or there is some issue accessing it.)
+		log.Println("No valid session cookie found. User is not logged in.")
 		return "" // Return an empty string (this indicates that the user ID could not be retrieved from the cookie)
 	}
 	// Retrieve the user ID associated with the session from the database
@@ -539,32 +540,12 @@ func getCommentsForPost(postID string) ([]Comment, error) {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if there is a session cookie
-	cookie, err := r.Cookie("forum-session")
-	isLoggedIn := false // Initialize isLoggedIn to false
+	// Check if the user is logged in
+	userID := getUserID(r)
+	isLoggedIn := userID != "" // User is logged in if getUserID returns a valid ID
 
-	if err != nil || cookie.Value == "" {
-		log.Println("No session cookie found. User is not logged in.")
-	} else {
-		// There is a cookie, check if the session is valid
-		var exists bool
-		err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM sessions WHERE session_id = ?)",
-			cookie.Value).Scan(&exists)
-
-		if err != nil {
-			log.Printf("Error checking session validity: %v", err)
-		} else if !exists {
-			log.Printf("Session not found in database. Invalidating cookie.")
-			http.SetCookie(w, &http.Cookie{
-				Name:    "forum-session",
-				Value:   "",
-				Expires: time.Now(),
-				Path:    "/",
-			})
-		} else {
-			isLoggedIn = true
-			log.Println("Session is valid. User is logged in.")
-		}
+	if isLoggedIn {
+		log.Printf("User is logged in. UserID: %s", userID)
 	}
 
 	// Check if the request contains category filter parameters
@@ -572,6 +553,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve posts and comments for display based on category filter
 	var posts []Post
+	var err error
 
 	switch filter := r.FormValue("filter"); filter {
 	case "user":
