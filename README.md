@@ -50,12 +50,10 @@ This project explores the development of a forum application designed to enhance
     func decreaseCommentDislikeCount(commentID string) 
     func addCommentInteraction(userID, commentID, action string) 
     func removeCommentInteraction(userID, commentID string) 
-    func splitCategories(categoriesString string) []string
-    func getPostByID(postID string) (*Post, error)
     func getUserPostData(userID string) (map[string]int, error)
-    func userPostChartHandler(w http.ResponseWriter, r *http.Request) 
-    func getUserCommentData(userID string) ([]string, []int)
-    func userCommentChartHandler(w http.ResponseWriter, r *http.Request)
+    func userPostsChartHandler(w http.ResponseWriter, r *http.Request) 
+    func getCommentsDataOnUserPosts(userID string) ([]string, []int)
+    func commentsOnUserPostsChartHandler(w http.ResponseWriter, r *http.Request)
 
 ## To run the app:
 

@@ -409,7 +409,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "forum-session",
 		Value:   sessionID,
-		Expires: time.Now().Add(1 * time.Hour),
+		Expires: time.Now().Add(2 * time.Hour),
 		Path:    "/",
 	})
 
@@ -418,30 +418,30 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the session ID from the cookie
+	// Retrieve the session cookie from the request
 	sessionCookie, err := r.Cookie("forum-session")
 	if err != nil {
-		log.Println("Error getting session cookie:", err)
+		log.Println("Session cookie not found or already expired:", err)
 	} else {
 		sessionID := sessionCookie.Value
 		log.Printf("Logging out user with session ID: %s\n", sessionID)
 
-		// Delete the session from the database
+		// Remove the session record from the database
 		_, err = db.Exec(`DELETE FROM sessions WHERE session_id = ?`, sessionID)
 		if err != nil {
-			log.Printf("Error deleting session from database: %v", err)
+			log.Printf("Failed to delete session from database: %v", err)
 		}
 	}
 
-	// Expire the cookie to delete the session
+	// // Invalidate the session cookie by setting an expired timestamp
 	http.SetCookie(w, &http.Cookie{
 		Name:    "forum-session",
-		Value:   "",
-		Expires: time.Now(),
-		Path:    "/",
+		Value:   "",                             // Empty value to clear the session ID
+		Expires: time.Now().Add(-1 * time.Hour), // Set expiration to the past to force removal
+		Path:    "/",                            // Ensure it applies to the entire site
 	})
 
-	// Redirect to the home page
+	// Redirect the user to the homepage after logout
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -712,20 +712,18 @@ func getLikedPosts(userID string) ([]Post, error) {
 }
 
 func createPostHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the user ID
+	// getUserID(r) extracts the session ID from the cookie and queries the database to retrieve the user ID.
 	userID := getUserID(r)
 
-	// Check if the user is logged in (based on the retrieved userID)
+	// If getUserID(r) returns an empty string, the user is redirected because they are not authenticated.
 	if userID == "" {
-		// User is not logged in, redirect to the login page
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	// User is logged in, proceed with post creation   // Parse the form data
+	// User is logged in, and no error, parse the form data (proceed with post creation)
 	err := r.ParseForm()
 	if err != nil {
-		log.Printf("Error parsing form data: %v", err)
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
@@ -759,20 +757,17 @@ func categoryFilterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCommentHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if the user is logged in
-	cookie, err := r.Cookie("forum-session")
-	if err != nil || cookie.Value == "" {
-		// User is not logged in, redirect to the login page
+	// getUserID(r) extracts the session ID from the cookie and queries the database to retrieve the user ID.
+	userID := getUserID(r)
+
+	// If getUserID(r) returns an empty string, the user is redirected because they are not authenticated.
+	if userID == "" {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	// User is logged in, proceed with comment creation
-
-	userID := getUserID(r) // Function that retrieves user ID from the session
-
-	// Parse the form data
-	err = r.ParseForm()
+	// User is logged in, and no error, parse the form data (proceed with comment creation)
+	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
