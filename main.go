@@ -180,7 +180,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-// Function retrieves the user ID from the given HTTP request
+// Function retrieves the userID from the given HTTP request
 func getUserID(r *http.Request) string { // Takes an http.Request object (r) as its parameter. This object represents an incoming HTTP request.
 	cookie, err := r.Cookie("forum-session") // Attempt to retrieve the "forum-session" cookie from the request
 	if err != nil || cookie.Value == "" {    // if there is an error retrieving the cookie (e.g. the cookie is not present or there is some issue accessing it.)
@@ -446,99 +446,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
-	var posts []Post
-	var query string
-	var args []interface{}
-
-	if categoryFilter != "" {
-		// Split the categoryFilter into individual categories
-		categories := strings.Split(categoryFilter, ",")
-
-		// Build the query dynamically based on the number of categories
-		query = `
-            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
-                   posts.likes_count, posts.dislikes_count, users.username
-            FROM posts
-            JOIN users ON posts.user_id = users.id
-            WHERE `
-		for i, category := range categories {
-			if i > 0 {
-				query += " OR "
-			}
-			query += "INSTR(posts.categories, ?) > 0"
-			args = append(args, category)
-		}
-		query += `
-            ORDER BY posts.created_at DESC
-        `
-	} else {
-		query = `
-            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
-                   posts.likes_count, posts.dislikes_count, users.username
-            FROM posts
-            JOIN users ON posts.user_id = users.id
-            ORDER BY posts.created_at DESC
-        `
-	}
-
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var post Post
-		var categoriesString string
-		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount, &post.Username)
-		if err != nil {
-			return nil, err
-		}
-
-		// Split the categories string into a slice
-		post.Categories = strings.Split(categoriesString, ",")
-
-		// Retrieve comments for the post
-		comments, err := getCommentsForPost(post.ID)
-		if err != nil {
-			return nil, err
-		}
-		post.Comments = comments
-
-		posts = append(posts, post)
-	}
-
-	return posts, nil
-}
-
-// getCommentsForPost retrieves all comments for a specific post from the database
-func getCommentsForPost(postID string) ([]Comment, error) {
-	rows, err := db.Query(`
-		SELECT comments.id, comments.post_id, users.username, comments.content, comments.created_at, comments.likes_count, comments.dislikes_count
-		FROM comments
-		JOIN users ON comments.user_id = users.id
-		WHERE comments.post_id = ?
-		ORDER BY created_at DESC
-	`, postID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var comments []Comment
-	for rows.Next() {
-		var c Comment
-		err := rows.Scan(&c.ID, &c.PostID, &c.Username, &c.Content, &c.CreatedAt, &c.LikesCount, &c.DislikesCount)
-		if err != nil {
-			return nil, err
-		}
-
-		comments = append(comments, c)
-	}
-	return comments, nil
-}
-
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if the user is logged in
 	userID := getUserID(r)
@@ -610,36 +517,69 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getPostsByUser retrieves posts created by a specific user from the database
-func getPostsByUser(userID string) ([]Post, error) {
-	var posts []Post
+// Function takes the category value from the form submission and appends it as a query parameter to the home page URL (/?category=<selected_category>).
+func categoryFilterHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/?category="+r.FormValue("category"), http.StatusSeeOther)
+}
 
-	rows, err := db.Query(`
-		SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
-		       posts.likes_count, posts.dislikes_count, users.username
-		FROM posts
-		JOIN users ON posts.user_id = users.id
-		WHERE posts.user_id = ?
-		ORDER BY posts.created_at DESC
-	`, userID)
+// Function fetches posts from the database, applying a category filter if specified.
+func getPostsFromDatabase(categoryFilter string) ([]Post, error) {
+	var posts []Post
+	var query string
+	var args []interface{}
+
+	// If categoryFilter is not empty, split the categoryFilter into individual categories.
+	if categoryFilter != "" {
+		categories := strings.Split(categoryFilter, ",")
+
+		// Build the query dynamically based on the number of categories
+		query = `
+            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
+                   posts.likes_count, posts.dislikes_count, users.username
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            WHERE `
+		for i, category := range categories {
+			if i > 0 {
+				query += " OR "
+			}
+			query += "INSTR(posts.categories, ?) > 0" // Function checks whether a substring (category) is present in the categories column.
+			args = append(args, category)             // Each category is added as a query parameter using args, which is passed to db.Query() to prevent SQL injection.
+		}
+		query += `
+            ORDER BY posts.created_at DESC
+        `
+		// If no category is provided (indicated by an empty string), the query retrieves all posts without any filtering, ordered by the created_at timestamp in descending order (latest posts first).
+	} else {
+		query = `
+            SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, 
+                   posts.likes_count, posts.dislikes_count, users.username
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            ORDER BY posts.created_at DESC
+        `
+	}
+
+	// Execute the SQL query, passing any category filter values as arguments
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() // ensures that the database connection is properly closed after query processing.
 
+	// Each row is scanned and mapped to the Post struct fields.
 	for rows.Next() {
 		var post Post
 		var categoriesString string
-		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt,
-			&post.LikesCount, &post.DislikesCount, &post.Username)
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount, &post.Username)
 		if err != nil {
 			return nil, err
 		}
 
-		// Split the categories string into a slice
+		// categoriesString is split using strings.Split() to convert the comma-separated string of categories into a slice ([]string).
 		post.Categories = strings.Split(categoriesString, ",")
 
-		// Retrieve comments for the post
+		// Comments for each post are retrieved using getCommentsForPost(post.ID) and appended to the Comments field.
 		comments, err := getCommentsForPost(post.ID)
 		if err != nil {
 			return nil, err
@@ -649,13 +589,82 @@ func getPostsByUser(userID string) ([]Post, error) {
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	return posts, nil // A slice of (filtered/all posts) Post objects is returned along with a nil error if no issues occur.
 }
 
-// getLikedPosts retrieves posts liked by a specific user from the database
+// getCommentsForPost retrieves all comments for a specific post from the database
+func getCommentsForPost(postID string) ([]Comment, error) {
+	rows, err := db.Query(`
+		SELECT comments.id, comments.post_id, users.username, comments.content, comments.created_at, comments.likes_count, comments.dislikes_count
+		FROM comments
+		JOIN users ON comments.user_id = users.id
+		WHERE comments.post_id = ?
+		ORDER BY created_at DESC
+	`, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var comments []Comment
+	for rows.Next() {
+		var c Comment
+		err := rows.Scan(&c.ID, &c.PostID, &c.Username, &c.Content, &c.CreatedAt, &c.LikesCount, &c.DislikesCount)
+		if err != nil {
+			return nil, err
+		}
+
+		comments = append(comments, c)
+	}
+	return comments, nil
+}
+
+// getPostsByUser retrieves posts created by a specific user from the database
+func getPostsByUser(userID string) ([]Post, error) {
+	var posts []Post
+
+	rows, err := db.Query(`
+		SELECT posts.id, posts.title, posts.content, posts.categories, posts.created_at, posts.likes_count, posts.dislikes_count, users.username
+		FROM posts
+		JOIN users ON posts.user_id = users.id
+		WHERE posts.user_id = ?
+		ORDER BY posts.created_at DESC
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() // ensures that the database connection is properly closed after query processing.
+
+	// Each row is scanned and mapped to the Post struct fields.
+	for rows.Next() {
+		var post Post
+		var categoriesString string
+		err := rows.Scan(&post.ID, &post.Title, &post.Content, &categoriesString, &post.CreatedAt, &post.LikesCount, &post.DislikesCount, &post.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		// categoriesString is split using strings.Split() to convert the comma-separated string of categories into a slice ([]string).
+		post.Categories = strings.Split(categoriesString, ",")
+
+		// Comments for each post are retrieved using getCommentsForPost(post.ID) and appended to the Comments field.
+		comments, err := getCommentsForPost(post.ID)
+		if err != nil {
+			return nil, err
+		}
+		post.Comments = comments
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil // A slice of Post objects is returned along with a nil error if no issues occur.
+}
+
+// Function retrieves posts that a user has liked by querying the post_interactions table
 func getLikedPosts(userID string) ([]Post, error) {
 	var posts []Post
 
+	// INNER JOIN query between posts, users, and post_interactions to ensure that only posts liked by the specified user are returned
 	rows, err := db.Query(`
 		SELECT p.id, p.title, p.content, p.categories, p.created_at, p.likes_count, p.dislikes_count, u.username
 		FROM posts p
@@ -667,7 +676,7 @@ func getLikedPosts(userID string) ([]Post, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer rows.Close() // ensures that the database connection is properly closed after query processing.
 
 	for rows.Next() {
 		var post Post
@@ -677,10 +686,10 @@ func getLikedPosts(userID string) ([]Post, error) {
 			return nil, err
 		}
 
-		// Split the categories string into a slice
+		// categoriesString is split using strings.Split() to convert the comma-separated string of categories into a slice ([]string).
 		post.Categories = strings.Split(categoriesString, ",")
 
-		// Retrieve comments for the post
+		// Comments for each post are retrieved using getCommentsForPost(post.ID) and appended to the Comments field.
 		comments, err := getCommentsForPost(post.ID)
 		if err != nil {
 			return nil, err
@@ -690,7 +699,7 @@ func getLikedPosts(userID string) ([]Post, error) {
 		posts = append(posts, post)
 	}
 
-	return posts, nil
+	return posts, nil // A slice of Post objects is returned along with a nil error if no issues occur.
 }
 
 func createPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -731,11 +740,6 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to the home page
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func categoryFilterHandler(w http.ResponseWriter, r *http.Request) {
-	// Redirect to home page with category filter parameters
-	http.Redirect(w, r, "/?category="+r.FormValue("category"), http.StatusSeeOther)
 }
 
 func addCommentHandler(w http.ResponseWriter, r *http.Request) {
