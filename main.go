@@ -778,9 +778,10 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// Function processes POST request (like) from the html template
 func likePostHandler(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r) // Get the user ID
-	if userID == "" {      // Check if the user is logged in (based on the retrieved userID)
+	userID := getUserID(r)
+	if userID == "" { // Check if the user is logged in (based on the retrieved value)
 		http.Redirect(w, r, "/", http.StatusSeeOther) // Redirect to the login page
 		return
 	}
@@ -797,10 +798,21 @@ func likePostHandler(w http.ResponseWriter, r *http.Request) {
 		addPostInteraction(getUserID(r), postID, "like")
 	}
 
-	// Redirect back to the referring page or a default location
+	// Redirect back to the home page with an anchor to the updated post
 	http.Redirect(w, r, "/#post-"+postID, http.StatusSeeOther)
 }
 
+// Function extracts the post ID from the URL path
+func extractPostID(path string) string {
+	// Assuming the URL path is in the format "/post/{id}" or "/like/{id}" or "/dislike/{id}"
+	parts := strings.Split(path, "/")
+	if len(parts) >= 3 {
+		return parts[2]
+	}
+	return ""
+}
+
+// Boolean function initiates a database query of post_interactons table to check whether the user has previously interacted with the post
 func hasUserInteractedWithPost(userID, postID, action string) bool {
 	var count int
 	err := db.QueryRow(`
@@ -811,6 +823,7 @@ func hasUserInteractedWithPost(userID, postID, action string) bool {
 	return err == nil && count > 0
 }
 
+// Function increments the like count in post table suing UPDATE statement
 func increasePostLikeCount(postID string) {
 	_, err := db.Exec(`
         UPDATE posts
@@ -822,6 +835,7 @@ func increasePostLikeCount(postID string) {
 	}
 }
 
+// Function reduces the like count (if greater than zero) with UPDATE command sent to posts table
 func decreasePostLikeCount(postID string) {
 	_, err := db.Exec(`
         UPDATE posts
@@ -833,6 +847,7 @@ func decreasePostLikeCount(postID string) {
 	}
 }
 
+// Function records (with INSERT INTO statement) the interaction (like or dislike action) in the post_interactions table
 func addPostInteraction(userID, postID, action string) {
 	_, err := db.Exec(`
         INSERT INTO post_interactions (user_id, post_id, action)
@@ -843,6 +858,7 @@ func addPostInteraction(userID, postID, action string) {
 	}
 }
 
+// Function removes the previous interaction from post_interactons table using DELETE statement
 func removePostInteraction(userID, postID string) {
 	_, err := db.Exec(`
         DELETE FROM post_interactions
@@ -876,6 +892,7 @@ func dislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/#post-"+postID, http.StatusSeeOther)
 }
 
+// Function increments the dislike count in post table suing UPDATE statement
 func increasePostDislikeCount(postID string) {
 	_, err := db.Exec(`
         UPDATE posts
@@ -887,6 +904,7 @@ func increasePostDislikeCount(postID string) {
 	}
 }
 
+// Function reduces the dislike count (if greater than zero) with UPDATE command sent to posts table
 func decreasePostDislikeCount(postID string) {
 	_, err := db.Exec(`
         UPDATE posts
@@ -898,55 +916,46 @@ func decreasePostDislikeCount(postID string) {
 	}
 }
 
-// extractPostID extracts the post ID from the URL path
-func extractPostID(path string) string {
-	// Assuming the URL path is in the format "/post/{id}" or "/like/{id}" or "/dislike/{id}"
-	parts := strings.Split(path, "/")
-	if len(parts) >= 3 {
-		return parts[2]
-	}
-	return ""
-}
-
+// Function is responsible for processing a request to like a comment.
 func likeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve comment ID from the URL
 	commentID := extractCommentID(r.URL.Path)
 
-	// Check if the user already disliked the comment, reverse the interaction if true
+	// Check if the user previousy disliked the comment
 	if hasUserInteractedWithComment(getUserID(r), commentID, "dislike") {
 		decreaseCommentDislikeCount(commentID)
 		removeCommentInteraction(getUserID(r), commentID)
+		// Increment like count and add like interaction if the user hasn't already liked the comment
 	} else if !hasUserInteractedWithComment(getUserID(r), commentID, "like") {
-		// Increment the like count and add the interaction only if the user has not liked the comment before
 		increaseCommentLikeCount(commentID)
 		addCommentInteraction(getUserID(r), commentID, "like")
 	}
 
-	// Redirect back to the home page or the post page, depending on your design
+	// Redirect back to the home page with an anchor to the updated comment
 	http.Redirect(w, r, "/#comment-"+commentID, http.StatusSeeOther)
 }
 
+// Function is responsible for processing a request to dislike a comment.
 func dislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve comment ID from the URL
 	commentID := extractCommentID(r.URL.Path)
 
-	// Check if the user already liked the comment, reverse the interaction if true
+	// Check if the user previously liked the comment.
 	if hasUserInteractedWithComment(getUserID(r), commentID, "like") {
 		decreaseCommentLikeCount(commentID)
 		removeCommentInteraction(getUserID(r), commentID)
+		// Increment dislike count and add dislike interaction if the user hasn't already disliked the comment
 	} else if !hasUserInteractedWithComment(getUserID(r), commentID, "dislike") {
-		// Increment the dislike count and add the interaction only if the user has not disliked the comment before
 		increaseCommentDislikeCount(commentID)
 		addCommentInteraction(getUserID(r), commentID, "dislike")
 	}
 
-	// Redirect back to the home page or the post page, depending on your design
+	// Redirect back to the home page with an anchor to the updated comment
 	http.Redirect(w, r, "/#comment-"+commentID, http.StatusSeeOther)
 }
 
-// extractCommentID extracts the post ID from the URL path
+// Function extracts the post ID from the URL path
 func extractCommentID(path string) string {
-	// Assuming the URL path is in the format "/post/{id}" or "/like/{id}" or "/dislike/{id}"
 	parts := strings.Split(path, "/")
 	if len(parts) >= 3 {
 		return parts[2]
@@ -954,7 +963,7 @@ func extractCommentID(path string) string {
 	return ""
 }
 
-// Update function to check if the user has interacted with a comment
+// Function checks whether the user has previously interacted with the comment and returns true if the interaction exists.
 func hasUserInteractedWithComment(userID, commentID, action string) bool {
 	var count int
 	err := db.QueryRow(`
@@ -965,7 +974,7 @@ func hasUserInteractedWithComment(userID, commentID, action string) bool {
 	return err == nil && count > 0
 }
 
-// Update function to increase comment like count
+// Function increments like count in the comments table using SQL UPDATE statement
 func increaseCommentLikeCount(commentID string) {
 	_, err := db.Exec(`
         UPDATE comments
@@ -977,7 +986,7 @@ func increaseCommentLikeCount(commentID string) {
 	}
 }
 
-// Update function to decrease comment like count
+// Function reduces like count (if greater than zero) in the comments table using SQL UPDATE statement
 func decreaseCommentLikeCount(commentID string) {
 	_, err := db.Exec(`
         UPDATE comments
@@ -989,7 +998,7 @@ func decreaseCommentLikeCount(commentID string) {
 	}
 }
 
-// Update function to increase comment dislike count
+// Function increments dislike count for the comment using SQL UPDATE statement
 func increaseCommentDislikeCount(commentID string) {
 	_, err := db.Exec(`
         UPDATE comments
@@ -1001,7 +1010,7 @@ func increaseCommentDislikeCount(commentID string) {
 	}
 }
 
-// Update function to decrease comment dislike count
+// Function reduces dislike count (if greater than zero) for the comment using SQL UPDATE statement
 func decreaseCommentDislikeCount(commentID string) {
 	_, err := db.Exec(`
         UPDATE comments
@@ -1013,7 +1022,7 @@ func decreaseCommentDislikeCount(commentID string) {
 	}
 }
 
-// Update function to add comment interaction
+// Function inserts a new interaction (the like or dislike action) into the comment_interactions table
 func addCommentInteraction(userID, commentID, action string) {
 	_, err := db.Exec(`
         INSERT INTO comment_interactions (user_id, comment_id, action)
@@ -1024,7 +1033,7 @@ func addCommentInteraction(userID, commentID, action string) {
 	}
 }
 
-// Update function to remove comment interaction
+// Function removes user's interaction from comment_interactions table
 func removeCommentInteraction(userID, commentID string) {
 	_, err := db.Exec(`
         DELETE FROM comment_interactions
@@ -1035,14 +1044,14 @@ func removeCommentInteraction(userID, commentID string) {
 	}
 }
 
-// Retrieve the number of posts a user has made on each date.
+// Function queries the posts table to count the number of posts created by the user, grouped by the creation date
 func getUserPostData(userID string) ([]string, []int, error) {
 	rows, err := db.Query(`
         SELECT DATE(created_at), COUNT(*) 
         FROM posts 
         WHERE user_id = ? 
         GROUP BY DATE(created_at) 
-        ORDER BY DATE(created_at)`, userID) // Ensures dates are returned in chronological order
+        ORDER BY DATE(created_at)`, userID) // ensuring dates are returned in chronological order
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1051,6 +1060,7 @@ func getUserPostData(userID string) ([]string, []int, error) {
 	var dates []string
 	var counts []int
 
+	// Iterated over the results, and are appended the dates and post counts to two slices
 	for rows.Next() {
 		var date string
 		var count int
@@ -1061,27 +1071,28 @@ func getUserPostData(userID string) ([]string, []int, error) {
 		counts = append(counts, count)
 	}
 
+	// dates and counts are returned for visualisation
 	return dates, counts, nil
 }
 
-// Create chart for posts
+// Function receives the dates and counts and creates a chart for user posts activity
 func userPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 
-	// Fetch data
+	// Fetch data and check for errors
 	dates, counts, err := getUserPostData(userID)
 	if err != nil {
 		http.Error(w, "Error fetching user post activity", http.StatusInternalServerError)
 		return
 	}
 
-	// Prepare chart data
-	data := make([]opts.LineData, len(counts))
-	for i, v := range counts {
+	// Format the data as a series of opts.LineData objects to be used in the line chart.
+	data := make([]opts.LineData, len(counts)) // Initialise the slice with the right size.
+	for i, v := range counts {                 // The loop fills the new slice with properly formatted data.
 		data[i] = opts.LineData{Value: v}
 	}
 
-	// Create line chart
+	// Creates line chart
 	line := charts.NewLine()
 	line.SetGlobalOptions(
 		charts.WithTitleOpts(opts.Title{Title: "User Post Activity"}),
@@ -1120,6 +1131,7 @@ func getCommentsDataOnUserPosts(userID string) ([]string, []int) {
 	var dates []string
 	var counts []int
 
+	// Iterated over the results, and are appended the dates and post counts to two slices
 	for rows.Next() {
 		var date string
 		var count int
@@ -1131,6 +1143,7 @@ func getCommentsDataOnUserPosts(userID string) ([]string, []int) {
 		counts = append(counts, count)
 	}
 
+	// dates and counts are returned for visualisation
 	return dates, counts
 }
 
@@ -1154,8 +1167,8 @@ func commentsOnUserPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 		}),
 	)
 
-	// Convert counts []int to []opts.LineData
-	data := make([]opts.LineData, len(counts)) // initialises the slice with the right size
+	// Format the data as a series of opts.LineData objects to be used in the line chart.
+	data := make([]opts.LineData, len(counts)) // Initialise the slice with the right size.
 	for i, v := range counts {                 // The loop fills the new slice with properly formatted data.
 		data[i] = opts.LineData{Value: v}
 	}
