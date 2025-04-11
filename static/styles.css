@@ -3,11 +3,10 @@
 body.logged-in {
     font-family: Arial, Helvetica, sans-serif;
     background-color: rgb(215, 218, 223);
-    margin: 20px;
     display: grid;
     grid-template-rows: auto 1fr;
     grid-template-columns: 25% 1fr;
-    height: 100vh;
+    /* height: 100vh; with this line included the side bar and the top page will not be scrolling*/
 }
 
 body.not-logged-in {
@@ -53,7 +52,6 @@ header {
     overflow-y: auto;
 }
 
-
 .not-logged-content {
     display: flex;
     flex-direction: column;
@@ -63,7 +61,7 @@ header {
 }
 
 .please-log-in {
-    padding-top: 15px ;
+    padding-top: 15px;
     align-content: center; /* Vertically centers elements */
     text-align: center; /* Centers text */
     font-size: 24px;
@@ -75,6 +73,11 @@ header {
 h2 {
     text-align: center;
     margin-top: 40px;
+    text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
+}
+
+h3 {
+    text-align: center;
     text-shadow: 0px 0px 2px rgba(0,0,0,0.5);
 }
 
@@ -154,19 +157,8 @@ a:active {
 
 .logout {
     display: flex;
-    justify-content: flex-end;
-    padding: 10px;
+    justify-content: flex-end;  
     width: 100px;
-}
-
-.button-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Adds space between buttons */
-}
-
-.button-container button {
-    width: 85px;
 }
 
 .logout button {
@@ -181,6 +173,16 @@ a:active {
 
 .logout button:hover {
     color: #000000;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adds space between buttons */
+}
+
+.button-container button {
+    width: 85px;
 }
 
 select {
