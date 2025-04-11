@@ -45,10 +45,12 @@
 
             <!-- User click on the button/icon, submits a POST request to the /posts-chart endpoint and corresponding userPostsChartHandler -->
             <form action="/posts-chart" method="post">
-                <button class="material-icons" title="My posts activity chart" type="submit">show_chart</button>
+                <button class="material-icons" title="My posts activity chart" type="submit">chat_bubble</button>
             </form>
 
-            <a href="/comments-chart">Comment Activity on My Posts</a>
+            <form action="/comments-chart" method="post">
+                <button class="material-icons" title="Comment activity on my posts chart" type="submit">forum</button>
+            </form>
         </div>
 
         <div class="createANDfetch">
@@ -72,7 +74,7 @@
                     <label for="content"></label>
                     <textarea id="content" name="content" rows="6" placeholder="Type post content here..." required></textarea>                      
                     <div class="create-post">
-                        <button class="create-post material-icons" type="submit" title="Create post">chat</button>
+                        <button class="create-post material-icons" type="submit" title="Create post">send</button>
                     </div>
                 </form>  
             </div>
@@ -136,7 +138,7 @@
                             <label for="commentContent"></label>
                             <textarea id="commentContent" name="commentContent" rows="3" placeholder="Type your comment..." required></textarea>
                             <div class="create-post">
-                                <button class="add-comment material-icons" type="submit" title="Add comment">forum</button>
+                                <button class="add-comment material-icons" type="submit" title="Add comment">reply</button>
                             </div>
                         </form>
                     </div>     

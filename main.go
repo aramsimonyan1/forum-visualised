@@ -1147,8 +1147,9 @@ func getCommentsDataOnUserPosts(userID string) ([]string, []int) {
 	return dates, counts
 }
 
+// Function processes requests to generate the chart displaying the number of comments made on the user's posts over time.
 func commentsOnUserPostsChartHandler(w http.ResponseWriter, r *http.Request) {
-	userID := getUserID(r) // Get user ID from session or request
+	userID := getUserID(r)
 
 	// Fetch data
 	dates, counts := getCommentsDataOnUserPosts(userID)
