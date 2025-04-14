@@ -23,34 +23,36 @@
         <div class="sidebar">
             <form method="GET" action="/">
                 <label for="category"></label>
-                <select name="category" id="category">
+                <select name="category" id="category" title="Choose the category to be filtered">
                     <option value="" {{if eq .SelectedCategory ""}}selected{{end}}>All categories</option>
                     <option value="food" {{if eq .SelectedCategory "food"}}selected{{end}}>Food</option>
                     <option value="politics" {{if eq .SelectedCategory "politics"}}selected{{end}}>Politics</option>
                     <option value="sport" {{if eq .SelectedCategory "sport"}}selected{{end}}>Sport</option>
                     <option value="tech" {{if eq .SelectedCategory "tech"}}selected{{end}}>Tech</option>
                 </select>
-                <button class="filter material-icons" type="submit" title="Filter by category">filter_alt</button>
+                <button class="filter material-icons" type="submit" title="Filter">filter_alt</button>
             </form>
 
             <!-- Two buttons for user's posts, and liked posts -->
             <div class="button-container">
                 <form method="get" action="/">
-                    <button type="submit" name="filter" value="user">My Posts</button>
+                    <button type="submit" name="filter" value="user" title="Filter to display only your posts">My Posts</button>
                 </form>
                 <form method="get" action="/">
-                    <button type="submit" name="filter" value="liked">Liked Posts</button>
+                    <button type="submit" name="filter" value="liked" title="Filter to display only posts you liked">Liked Posts</button>
                 </form>
             </div>
 
             <!-- User click on the button/icon, submits a POST request to the /posts-chart endpoint and corresponding userPostsChartHandler -->
-            <form action="/posts-chart" method="post">
-                <button class="material-icons" title="My posts activity chart" type="submit">chat_bubble</button>
-            </form>
-
-            <form action="/comments-chart" method="post">
-                <button class="material-icons" title="Comment activity on my posts chart" type="submit">forum</button>
-            </form>
+            <div id="charts-container">
+                Charts:   
+                <form action="/posts-chart" method="post">
+                    <button class="material-icons" title="My posts activity chart" type="submit">chat_bubble</button>
+                </form>
+                <form action="/comments-chart" method="post">
+                    <button class="material-icons" title="Comment activity on my posts chart" type="submit">forum</button>
+                </form>
+            </div>
         </div>
 
         <div class="createANDfetch">
@@ -63,7 +65,7 @@
 
                     <div id="avalable-categories">
                         <label for="category">Category:</label>
-                        <select id="categories" name="categories[]" multiple required>
+                        <select id="categories" name="categories[]" multiple required title="Choose your post catrgory">
                             <option value="food">Food</option>
                             <option value="politics">Politics</option>
                             <option value="sport">Sport</option>
@@ -74,7 +76,7 @@
                     <label for="content"></label>
                     <textarea id="content" name="content" rows="6" placeholder="Type post content here..." required></textarea>                      
                     <div class="create-post">
-                        <button class="create-post material-icons" type="submit" title="Create post">send</button>
+                        <button class="create-post material-icons" type="submit" title="Submit">send</button>
                     </div>
                 </form>  
             </div>

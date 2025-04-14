@@ -200,6 +200,14 @@ select {
     align-items: center;
 }
 
+#charts-container {
+    padding-top: 8px;
+    display: grid;
+    grid-template-columns: 65px 50px 55px;
+    justify-items: center;
+    align-items: center;
+}
+
 .create-post {
     display: flex;
     justify-content: center;
