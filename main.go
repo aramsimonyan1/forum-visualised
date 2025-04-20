@@ -1,3 +1,4 @@
+// Version 1.0 May 2025, Author: Aram Simonyan
 package main
 
 import (

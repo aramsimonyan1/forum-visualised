@@ -66,4 +66,4 @@ Type in the terminal (you may wait a few seconds and allow the firewall to enabl
     $docker container run -p 8080:8080 my-forum-app
 
     Open your web browser and navigate to http://localhost:8080.
-    The forum webpage should now be able to Register or Login to the platform.
+    The forum webpage should now be able to Register or Log in to the platform.
