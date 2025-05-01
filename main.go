@@ -318,6 +318,7 @@ func emailExists(email string) bool {
 	return count > 0
 }
 
+// Enables user log in process
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Only HTTP POST requests are processed. Return HTTP 405 otherwise.
 	if r.Method != http.MethodPost {
@@ -419,6 +420,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// Enables userlog out functionality
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the session cookie from the request
 	sessionCookie, err := r.Cookie("forum-session")
@@ -620,7 +622,7 @@ func getCommentsForPost(postID string) ([]Comment, error) {
 	return comments, nil
 }
 
-// getPostsByUser retrieves posts created by a specific user from the database
+// Retrieves posts created by a specific user from the database
 func getPostsByUser(userID string) ([]Post, error) {
 	var posts []Post
 
@@ -703,6 +705,7 @@ func getLikedPosts(userID string) ([]Post, error) {
 	return posts, nil // A slice of Post objects is returned along with a nil error if no issues occur.
 }
 
+// Enables post creation functionality
 func createPostHandler(w http.ResponseWriter, r *http.Request) {
 	// getUserID(r) extracts the session ID from the cookie and queries the database to retrieve the user ID.
 	userID := getUserID(r)
@@ -743,6 +746,7 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// Enables comment addition functionality
 func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// getUserID(r) extracts the session ID from the cookie and queries the database to retrieve the user ID.
 	userID := getUserID(r)
