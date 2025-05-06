@@ -1,4 +1,4 @@
-## Web based forum application with user activities visualisation. 
+## Web-based forum application with user activity visualisation. 
 Version 1.0 May 2025
 
 Author: Aram Simonyan 
@@ -29,7 +29,6 @@ This project explores the development of a forum application designed to enhance
     func createPostHandler(w http.ResponseWriter, r *http.Request)
     func categoryFilterHandler(w http.ResponseWriter, r *http.Request)
     func addCommentHandler(w http.ResponseWriter, r *http.Request)
-    func viewPostHandler(w http.ResponseWriter, r *http.Request)
     func likePostHandler(w http.ResponseWriter, r *http.Request)
     func hasUserInteractedWithPost(userID, postID, action string) bool 
     func increasePostLikeCount(postID string)
@@ -62,8 +61,8 @@ Type in the terminal (you may wait a few seconds and allow the firewall to enabl
     $go run main.go   
 
     To run with docker:
-    $docker image build -t my-forum-app .  
-    $docker container run -p 8080:8080 my-forum-app
+    $docker image build -t forum-app .  
+    $docker container run -p 8080:8080 forum-app
 
     Open your web browser and navigate to http://localhost:8080.
-    The forum webpage should now be able to Register or Log in to the platform.
+    The forum webpage should now be accessible, allowing users to Register or Log in to the platform.

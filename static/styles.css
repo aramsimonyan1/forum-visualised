@@ -1,4 +1,4 @@
-/* Version 1.0 April 2025, Author: Aram Simonyan  */
+/* Version 1.0 May 2025, Author: Aram Simonyan  */
 /* static/styles.css */
 
 body.logged-in {
@@ -308,10 +308,6 @@ button.create-post:hover {
     grid-template-columns: 70px 300px;
     justify-items: normal;
     align-items: center;
-}
-
-.interaction-button {
-    padding: 4px;
 }
 
 form[action^="/add-comment"] {
