@@ -109,6 +109,7 @@
                                         <span class="post-rating-count">{{.DislikesCount}}</span>
                                     </form>  
                             </div>
+                        <!-- Display comments for users who are logged in -->
                         {{range .Comments}}
                             <div id="commentDetails"> 
                                     <p>Commented by: {{.Username}}</p>
@@ -173,7 +174,7 @@
             </div>
         </div>
 
-        <!-- Display posts for users who are not logged in -->
+        <!-- Display posts and comments for users who are not logged in -->
         <div class="posts-container">
             {{range .Posts}}
                 <div class="post">

@@ -19,49 +19,50 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var db *sql.DB
+var db *sql.DB // Declaring a global variable db for the database connection using Go's database/sql package
 
 type User struct {
-	ID       string
-	Username string
-	Password string
+	ID       string // Unique identifier for the user
+	Username string // Chosen name of the user
+	Password string // User's password
 }
 
 type Post struct {
-	ID            string
-	Username      string
-	Title         string
-	Content       string
-	Categories    []string
-	CreatedAt     time.Time
-	LikesCount    int
-	DislikesCount int
-	Comments      []Comment
-	IsLoggedIn    bool
+	ID            string    // Unique post identifier
+	Username      string    // Author of the post
+	Title         string    // Post title
+	Content       string    // Post body
+	Categories    []string  // Categories the post belongs to
+	CreatedAt     time.Time // Time of post creation
+	LikesCount    int       // User like action count
+	DislikesCount int       // User dislike action count
+	Comments      []Comment // List of comments on the post
+	IsLoggedIn    bool      // Indicates if the viewer is logged in (for rendering purposes)
 }
 
 type PostInteraction struct {
-	UserID string
-	PostID string
-	Action string
+	UserID string // Who interacted
+	PostID string // Which post was interacted with
+	Action string // Type of interaction (e.g., "like", "dislike")
 }
 
 type Comment struct {
-	ID            string
-	PostID        string
-	Username      string
-	Content       string
-	CreatedAt     time.Time
-	LikesCount    int
-	DislikesCount int
+	ID            string    // Unique comment ID
+	PostID        string    // The post this comment belongs to
+	Username      string    // Comment author
+	Content       string    // Comment text
+	CreatedAt     time.Time // Time of comment submission
+	LikesCount    int       // Like reaction count
+	DislikesCount int       // Like reaction count
 }
 
 type CommentInteraction struct {
-	UserID    string
-	CommentID string
-	Action    string
+	UserID    string // Who interacted
+	CommentID string // Which comment was interacted with
+	Action    string // Type of interaction (e.g., "like", "dislike")
 }
 
+// Initialises the database schema by creating tables only if they do not already exist
 func initDB() {
 	var err error
 	db, err = sql.Open("sqlite3", "./forum.db")
@@ -156,7 +157,7 @@ func initDB() {
 }
 
 func main() {
-	// Initialize the database
+	// Invoke database initialisation process
 	initDB()
 
 	// Serve static files
@@ -420,7 +421,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Enables userlog out functionality
+// Enables user log out functionality
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the session cookie from the request
 	sessionCookie, err := r.Cookie("forum-session")
@@ -449,6 +450,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+// Handles requests to the homepage based on user login status, retrieves posts and comments from the database, and renders them along with interaction counts.
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	// Check if the user is logged in
 	userID := getUserID(r)
@@ -783,7 +785,7 @@ func addCommentHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Function processes POST request (like) from the html template
+// Function processes POST request (like) from the home/html template
 func likePostHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r)
 	if userID == "" { // Check if the user is logged in (based on the retrieved value)
@@ -874,6 +876,7 @@ func removePostInteraction(userID, postID string) {
 	}
 }
 
+// Function processes POST request (dislike) from the home/html template
 func dislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r) // Get the user ID
 	if userID == "" {      // Check if the user is logged in (based on the retrieved userID)
