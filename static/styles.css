@@ -310,6 +310,10 @@ button.create-post:hover {
     align-items: center;
 }
 
+.interaction-button {
+    padding: 4px;
+}
+
 form[action^="/add-comment"] {
     display: flex;
     flex-direction: column;
