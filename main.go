@@ -1103,7 +1103,7 @@ func userPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 	// Creates line chart
 	line := charts.NewLine()
 	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "User Post Activity"}),
+		charts.WithTitleOpts(opts.Title{Title: "Your Posting Activity"}),
 		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name:        "Posts",
@@ -1165,7 +1165,7 @@ func commentsOnUserPostsChartHandler(w http.ResponseWriter, r *http.Request) {
 	// Create chart
 	line := charts.NewLine()
 	line.SetGlobalOptions(
-		charts.WithTitleOpts(opts.Title{Title: "Comment Activity on Your Posts"}),
+		charts.WithTitleOpts(opts.Title{Title: "Commenting Activity on Your Posts"}),
 		charts.WithXAxisOpts(opts.XAxis{Name: "Date"}),
 		charts.WithYAxisOpts(opts.YAxis{
 			Name:        "Comments",

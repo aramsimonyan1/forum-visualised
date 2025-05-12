@@ -311,7 +311,7 @@ button.create-post:hover {
 }
 
 .interaction-button {
-    padding: 4px;
+    padding: 4px;  /* gap between comments like and dislike buttons */
 }
 
 form[action^="/add-comment"] {
